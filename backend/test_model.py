@@ -1,6 +1,8 @@
+from pathlib import Path
 import joblib
 
-model = joblib.load("model.joblib")
+MODEL_PATH = Path(__file__).resolve().parent / "model.joblib"
 
-print("Model loaded successfully")
-print(model)
+def test_model_loads():
+    model = joblib.load(MODEL_PATH)
+    assert model is not None
