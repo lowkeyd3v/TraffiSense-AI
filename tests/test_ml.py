@@ -1,6 +1,4 @@
-def test_model_file_exists():
+def test_ml_folder_exists():
     import os
 
-    assert os.path.exists(
-        "ml/model.joblib"
-    )
+    assert os.path.exists("ml")

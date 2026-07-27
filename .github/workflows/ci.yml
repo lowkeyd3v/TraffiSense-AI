@@ -25,8 +25,8 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r backend/requirements.txt
-        pip install pytest
+          pip install pytest pandas numpy scikit-learn joblib
 
     - name: Run tests
       run: |
-        pytest
+        pytest tests
