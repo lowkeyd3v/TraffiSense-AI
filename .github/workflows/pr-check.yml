@@ -23,11 +23,17 @@ jobs:
         run: |
           cd backend
           pip install -r requirements.txt
+          pip install pytest
+
+      - name: Train ML model
+        run: |
+          cd backend
+          python ml_model.py
 
       - name: Run tests
         run: |
           cd backend
-          pytest
+          pytest -v
 
 
   frontend-test:
@@ -46,7 +52,7 @@ jobs:
       - name: Install packages
         run: |
           cd frontend
-          npm install
+          npm ci
 
       - name: Build frontend
         run: |

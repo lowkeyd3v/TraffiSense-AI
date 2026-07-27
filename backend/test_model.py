@@ -1,6 +1,10 @@
+import os
 import joblib
 
-model = joblib.load("model.joblib")
+MODEL_PATH = os.path.join(
+    os.path.dirname(os.path.dirname(__file__)),
+    "ml",
+    "model.joblib"
+)
 
-print("Model loaded successfully")
-print(model)
+model = joblib.load(MODEL_PATH)
