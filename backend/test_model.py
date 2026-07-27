@@ -2,8 +2,7 @@ import os
 import joblib
 
 MODEL_PATH = os.path.join(
-    os.path.dirname(os.path.dirname(__file__)),
-    "ml",
+    os.path.dirname(__file__),
     "model.joblib"
 )
 
