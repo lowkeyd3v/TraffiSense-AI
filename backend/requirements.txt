@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+sqlalchemy
 pandas
 numpy
 scipy
