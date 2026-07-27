@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Database
+*.sqlite3
+
+# ML Models
+*.joblib
+
+# Node
+node_modules/
