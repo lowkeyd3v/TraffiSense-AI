@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+pandas
+numpy
+scipy
+scikit-learn==1.6.0
+scikit-fuzzy
+joblib
+pydantic
+requests
+python-dotenv
+packaging
+networkx
