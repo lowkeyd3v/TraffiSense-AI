@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from app.routers import traffic
 from app.config import settings
 from app.database import Base, engine
 import app.models
@@ -11,7 +11,7 @@ app = FastAPI(
 )
 
 Base.metadata.create_all(bind=engine)
-
+app.include_router(traffic.router)
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",

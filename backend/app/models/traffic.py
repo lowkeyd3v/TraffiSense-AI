@@ -31,11 +31,11 @@ class Traffic(Base):
     user = relationship(
     "User",
     back_populates="traffic_records"
-)
+    )
 
-prediction = relationship(
+    prediction = relationship(
     "Prediction",
     back_populates="traffic",
     uselist=False,
     cascade="all, delete-orphan",
-)
+   )
