@@ -13,6 +13,11 @@ class UserCreate(UserBase):
     password: str
 
 
+class UserLogin(BaseModel):
+    username: str
+    password: str
+
+
 class UserResponse(UserBase):
     id: int
     created_at: datetime
