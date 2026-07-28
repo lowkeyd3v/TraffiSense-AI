@@ -5,7 +5,7 @@ from app.config import settings
 from app.database import Base, engine
 from app.routers import auth
 import app.models
-
+from app.routers import prediction
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,
@@ -14,6 +14,7 @@ app = FastAPI(
 Base.metadata.create_all(bind=engine)
 app.include_router(traffic.router)
 app.include_router(auth.router)
+app.include_router(prediction.router)
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
