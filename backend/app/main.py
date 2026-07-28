@@ -3,7 +3,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.routers import traffic
 from app.config import settings
 from app.database import Base, engine
-from app.routers import auth
 import app.models
 
 app = FastAPI(
@@ -13,7 +12,6 @@ app = FastAPI(
 
 Base.metadata.create_all(bind=engine)
 app.include_router(traffic.router)
-app.include_router(auth.router)
 origins = [
     "http://localhost:5173",
     "http://localhost:3000",
