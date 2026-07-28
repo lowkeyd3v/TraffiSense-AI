@@ -1,16 +1,50 @@
 # Python
 __pycache__/
 *.py[cod]
+*.pyo
+*.pyd
 
 # Virtual environments
 venv/
 .venv/
+env/
+
+# Environment variables
+.env
 
 # Database
 *.sqlite3
+*.db
 
 # ML Models
 *.joblib
+*.pkl
+*.h5
+
+# Dataset (avoid pushing large datasets)
+dataset.csv
+data/*.csv
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# Logs
+*.log
 
 # Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build files
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
