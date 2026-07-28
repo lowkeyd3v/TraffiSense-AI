@@ -26,7 +26,12 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r backend/requirements.txt
+          python -m pip install -r backend/requirements.txt
+          python -m pip install pytest
+
+      - name: Verify dependencies
+        run: |
+          python -c "import pandas, numpy, sklearn, joblib, pytest; print('All dependencies installed successfully')"
 
       - name: Train ML model
         working-directory: backend
@@ -35,4 +40,4 @@ jobs:
 
       - name: Run tests
         run: |
-          pytest tests
+          python -m pytest tests
