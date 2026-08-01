@@ -1,6 +1,6 @@
 // Shared constants and helpers for the Traffic Intelligence Engine
 
-export const API = import.meta.env.PROD ? '' : 'http://127.0.0.1:8000'
+export const API = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://127.0.0.1:8000')
 
 export const EVENT_CAUSES = [
   'vehicle_breakdown','accident','water_logging','tree_fall','pot_holes',
