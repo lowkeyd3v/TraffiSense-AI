@@ -21,13 +21,16 @@ MAPPLS_ACCESS_TOKEN = os.getenv("MAPPLS_ACCESS_TOKEN")
 
 app = FastAPI(title="Traffic Intelligence Engine API — TraffiSense AI")
 
+# Replace https://traffisense-ai.vercel.app with your actual production
+# Vercel domain. The regex below additionally allows any *.vercel.app
+# preview-deployment URL (e.g. traffisense-ai-git-feature-you.vercel.app).
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://your-app.vercel.app",
+        "https://traffisense-ai.vercel.app",
     ],
-    allow_origin_regex=r"https://.*\.vercel\.app",  # allow Vercel preview deployments
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -132,12 +135,14 @@ def get_real_diversion_route(lat: float, lng: float) -> list[dict]:
     lat_b, lng_b = lat + 0.003, lng + 0.003
     lat_c, lng_c = lat + 0.002, lng - 0.002
     
-    token = MAPPLS_ACCESS_TOKEN or "pntknaqafyaklachyssafshgqdymvzqcmdpj"
-    mappls_url = f"https://apis.mappls.com/advancedmaps/v1/{token}/route/driving/{lng_a},{lat_a};{lng_c},{lat_c};{lng_b},{lat_b}?overview=full&geometries=geojson"
-    
+    if MAPPLS_ACCESS_TOKEN:
+        mappls_url = f"https://apis.mappls.com/advancedmaps/v1/{MAPPLS_ACCESS_TOKEN}/route/driving/{lng_a},{lat_a};{lng_c},{lat_c};{lng_b},{lat_b}?overview=full&geometries=geojson"
+    else:
+        mappls_url = None
+
     try:
-        response = requests.get(mappls_url, timeout=3.0)
-        if response.status_code == 200:
+        response = requests.get(mappls_url, timeout=3.0) if mappls_url else None
+        if response is not None and response.status_code == 200:
             data = response.json()
             if "routes" in data and len(data["routes"]) > 0:
                 coords = data["routes"][0]["geometry"]["coordinates"]

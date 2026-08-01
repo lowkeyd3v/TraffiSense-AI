@@ -1,148 +1,140 @@
-import sqlite3
+"""
+Deployment log storage.
+
+Uses Postgres when a DATABASE_URL env var is present (e.g. on Render, where
+this points at a managed Postgres instance and data survives restarts/deploys).
+Falls back to a local db.sqlite3 file when DATABASE_URL is unset, so local
+dev still works with zero setup.
+
+Public function signatures (init_db, add_deployment, get_deployments,
+resolve_deployment) are unchanged from the original sqlite3-only version,
+so main.py does not need to change.
+"""
+
 import os
 from typing import List, Dict, Any, Optional
 
-DB_PATH = "db.sqlite3"
+from sqlalchemy import (
+    create_engine, MetaData, Table, Column, Integer, Float, String,
+    Boolean, DateTime, select, insert, update, func,
+)
+
+DATABASE_URL = os.getenv("DATABASE_URL", "").strip()
+
+if DATABASE_URL:
+    # Render's DATABASE_URL uses the "postgres://" scheme; SQLAlchemy 2.x /
+    # psycopg2 want "postgresql://".
+    if DATABASE_URL.startswith("postgres://"):
+        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True)
+else:
+    # Local dev fallback — NOT suitable for Render's ephemeral filesystem.
+    engine = create_engine("sqlite:///db.sqlite3", connect_args={"check_same_thread": False})
+
+metadata = MetaData()
+
+deployments = Table(
+    "deployments", metadata,
+    Column("id", Integer, primary_key=True, autoincrement=True),
+    Column("event_cause", String),
+    Column("veh_type", String),
+    Column("corridor", String),
+    Column("priority", String),
+    Column("time", String),
+    Column("requires_road_closure", Boolean),
+    Column("event_type", String),
+    Column("latitude", Float),
+    Column("longitude", Float),
+    Column("police_station", String),
+    Column("description", String),
+    Column("event_scale", String),
+    Column("crowd_size", Integer),
+    Column("predicted_duration", Float),
+    Column("personnel", Integer),
+    Column("barricades", Integer),
+    Column("congestion_radius_meters", Float),
+    Column("commuter_delay_minutes", Float),
+    Column("status", String, default="active"),
+    Column("actual_duration", Float),
+    Column("actual_personnel", Integer),
+    Column("actual_barricades", Integer),
+    Column("actual_congestion_radius", Float),
+    Column("actual_delay", Float),
+    Column("feedback_comments", String),
+    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+)
+
 
 def init_db():
-    """Initializes the SQLite database with the deployments table."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS deployments (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            event_cause TEXT,
-            veh_type TEXT,
-            corridor TEXT,
-            priority TEXT,
-            time TEXT,
-            requires_road_closure INTEGER,
-            event_type TEXT,
-            latitude REAL,
-            longitude REAL,
-            police_station TEXT,
-            description TEXT,
-            event_scale TEXT,
-            crowd_size INTEGER,
-            predicted_duration REAL,
-            personnel INTEGER,
-            barricades INTEGER,
-            congestion_radius_meters REAL,
-            commuter_delay_minutes REAL,
-            status TEXT DEFAULT 'active', -- 'active' or 'resolved'
-            actual_duration REAL,
-            actual_personnel INTEGER,
-            actual_barricades INTEGER,
-            actual_congestion_radius REAL,
-            actual_delay REAL,
-            feedback_comments TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-    conn.commit()
-    conn.close()
+    """Creates the deployments table if it doesn't exist."""
+    metadata.create_all(engine)
+
 
 def add_deployment(data: Dict[str, Any], predictions: Dict[str, Any]) -> int:
     """Inserts a new deployment log entry into the database."""
-    conn = sqlite3.connect(DB_PATH)
-    cursor = conn.cursor()
-    
-    query = """
-        INSERT INTO deployments (
-            event_cause, veh_type, corridor, priority, time, requires_road_closure,
-            event_type, latitude, longitude, police_station, description,
-            event_scale, crowd_size, predicted_duration, personnel, barricades,
-            congestion_radius_meters, commuter_delay_minutes, status
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
-    """
-    
-    cursor.execute(query, (
-        data.get("event_cause"),
-        data.get("veh_type"),
-        data.get("corridor"),
-        data.get("priority"),
-        data.get("time"),
-        1 if data.get("requires_road_closure") else 0,
-        data.get("event_type"),
-        data.get("latitude"),
-        data.get("longitude"),
-        data.get("police_station"),
-        data.get("description"),
-        data.get("event_scale", "Medium"),
-        data.get("crowd_size", 0),
-        predictions.get("predicted_duration"),
-        predictions.get("personnel"),
-        predictions.get("barricades"),
-        predictions.get("congestion_radius_meters"),
-        predictions.get("commuter_delay_minutes")
-    ))
-    
-    new_id = cursor.lastrowid
-    conn.commit()
-    conn.close()
+    with engine.begin() as conn:
+        result = conn.execute(
+            insert(deployments).values(
+                event_cause=data.get("event_cause"),
+                veh_type=data.get("veh_type"),
+                corridor=data.get("corridor"),
+                priority=data.get("priority"),
+                time=data.get("time"),
+                requires_road_closure=bool(data.get("requires_road_closure")),
+                event_type=data.get("event_type"),
+                latitude=data.get("latitude"),
+                longitude=data.get("longitude"),
+                police_station=data.get("police_station"),
+                description=data.get("description"),
+                event_scale=data.get("event_scale", "Medium"),
+                crowd_size=data.get("crowd_size", 0),
+                predicted_duration=predictions.get("predicted_duration"),
+                personnel=predictions.get("personnel"),
+                barricades=predictions.get("barricades"),
+                congestion_radius_meters=predictions.get("congestion_radius_meters"),
+                commuter_delay_minutes=predictions.get("commuter_delay_minutes"),
+                status="active",
+            )
+        )
+        new_id = result.inserted_primary_key[0]
     return new_id
+
 
 def get_deployments(status: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieves deployments from the database, optionally filtered by status."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    if status:
-        cursor.execute("SELECT * FROM deployments WHERE status = ? ORDER BY created_at DESC", (status,))
-    else:
-        cursor.execute("SELECT * FROM deployments ORDER BY created_at DESC")
-        
-    rows = cursor.fetchall()
-    conn.close()
-    
-    result = []
-    for r in rows:
-        d = dict(r)
-        d["requires_road_closure"] = bool(d["requires_road_closure"])
-        result.append(d)
-    return result
+    with engine.connect() as conn:
+        stmt = select(deployments).order_by(deployments.c.created_at.desc())
+        if status:
+            stmt = stmt.where(deployments.c.status == status)
+        rows = conn.execute(stmt).mappings().all()
+    return [dict(r) for r in rows]
+
 
 def resolve_deployment(deployment_id: int, feedback: Dict[str, Any]) -> Optional[Dict[str, Any]]:
     """Updates an active deployment with actual metrics and sets status to resolved."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    
-    # Check if exists
-    cursor.execute("SELECT * FROM deployments WHERE id = ?", (deployment_id,))
-    row = cursor.fetchone()
-    if not row:
-        conn.close()
-        return None
-        
-    query = """
-        UPDATE deployments
-        SET status = 'resolved',
-            actual_duration = ?,
-            actual_personnel = ?,
-            actual_barricades = ?,
-            actual_congestion_radius = ?,
-            actual_delay = ?,
-            feedback_comments = ?
-        WHERE id = ?
-    """
-    
-    cursor.execute(query, (
-        feedback.get("actual_duration"),
-        feedback.get("actual_personnel"),
-        feedback.get("actual_barricades"),
-        feedback.get("actual_congestion_radius"),
-        feedback.get("actual_delay"),
-        feedback.get("feedback_comments"),
-        deployment_id
-    ))
-    
-    # Fetch updated row
-    cursor.execute("SELECT * FROM deployments WHERE id = ?", (deployment_id,))
-    updated_row = dict(cursor.fetchone())
-    updated_row["requires_road_closure"] = bool(updated_row["requires_road_closure"])
-    
-    conn.commit()
-    conn.close()
-    return updated_row
+    with engine.begin() as conn:
+        existing = conn.execute(
+            select(deployments).where(deployments.c.id == deployment_id)
+        ).mappings().first()
+        if not existing:
+            return None
+
+        conn.execute(
+            update(deployments)
+            .where(deployments.c.id == deployment_id)
+            .values(
+                status="resolved",
+                actual_duration=feedback.get("actual_duration"),
+                actual_personnel=feedback.get("actual_personnel"),
+                actual_barricades=feedback.get("actual_barricades"),
+                actual_congestion_radius=feedback.get("actual_congestion_radius"),
+                actual_delay=feedback.get("actual_delay"),
+                feedback_comments=feedback.get("feedback_comments"),
+            )
+        )
+
+        updated = conn.execute(
+            select(deployments).where(deployments.c.id == deployment_id)
+        ).mappings().first()
+
+    return dict(updated) if updated else None

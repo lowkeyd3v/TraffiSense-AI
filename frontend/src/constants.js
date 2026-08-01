@@ -1,6 +1,8 @@
 // Shared constants and helpers for the Traffic Intelligence Engine
 
-export const API = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? '' : 'http://127.0.0.1:8000')
+// In prod (Vercel), point at the Render backend via VITE_API_URL.
+// In dev, fall back to the local FastAPI server.
+export const API = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'
 
 export const EVENT_CAUSES = [
   'vehicle_breakdown','accident','water_logging','tree_fall','pot_holes',
