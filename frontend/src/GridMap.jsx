@@ -2,8 +2,9 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import axios from 'axios'
 import { API } from './constants'
 
+
 const MONTHS = ['All Months','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-const HOUR_LABELS = Array.from({length:24}, (_,h) => h===0?'12am':h===12?'12pm':h<12?`${h}am`:`${h-12}pm`)
+const HOUR_LABELS = Array.from({ length: 24 }, (_, h) => h === 0 ? '12am' : h === 12 ? '12pm' : h < 12 ? `${h}am` : `${h - 12}pm`);
 
 const CAUSE_LABELS = {
   vehicle_breakdown:'Vehicle Breakdown', water_logging:'Water Logging',

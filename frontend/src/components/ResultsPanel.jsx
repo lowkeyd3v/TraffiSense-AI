@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { CAUSE_LABELS, RISK_CONFIG, fmt } from '../constants'
-import MapplsMap from '../MapplsMap'
+import LeafletMap from '../LeafletMap'
 
 function RiskBadge({level}) {
   const cfg = RISK_CONFIG[level]||RISK_CONFIG.Low
@@ -193,7 +193,7 @@ export default function ResultsPanel({ results }) {
           </div>
         </div>
         <div className="bg-blue-100 rounded-lg min-h-[400px] overflow-hidden border border-gray-200 relative">
-          <MapplsMap
+          <LeafletMap
             center={{lat:form.latitude, lng:form.longitude}}
             diversionRoute={r.diversion_route}
             radius={r.congestion_radius_meters}
