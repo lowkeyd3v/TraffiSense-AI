@@ -10,6 +10,10 @@ jobs:
     name: Backend Tests
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: backend
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -19,26 +23,33 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
       - name: Install dependencies
         run: |
-          cd backend
-          pip install -r requirements.txt
-          pip install pytest
+          python -m pip install -r requirements.txt
+          python -m pip install pytest
+
+      - name: Verify installation
+        run: |
+          python -c "import pandas, numpy, sklearn, joblib, pytest; print('Dependencies installed successfully')"
 
       - name: Train ML model
         run: |
-          cd backend
           python ml_model.py
 
       - name: Run tests
         run: |
-          cd backend
-          pytest
-
+          python -m pytest -v
 
   frontend-test:
     name: Frontend Build Check
     runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
 
     steps:
       - name: Checkout repository
@@ -50,11 +61,7 @@ jobs:
           node-version: "20"
 
       - name: Install packages
-        run: |
-          cd frontend
-          npm ci
+        run: npm ci
 
       - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
+        run: npm run build
