@@ -51,7 +51,7 @@ export default function ResultsPanel({ results }) {
   }
 
   return (
-    <div className="p-8 flex flex-col gap-6 bg-gray-50 min-h-full">
+    <div className="p-8 pb-32 flex flex-col gap-6 bg-gray-50 min-h-full">
       {/* Sticky Dashboard Header */}
       <div className="sticky top-0 z-10 bg-gray-50 pb-6 border-b border-gray-200/60 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.1)] -mx-8 px-8 pt-8 mb-6">
         {/* Header */}
