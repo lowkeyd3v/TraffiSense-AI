@@ -17,7 +17,6 @@ from fuzzy_engine import compute_resources
 from data_pipeline import load_full_data
 
 load_dotenv()
-MAPPLS_ACCESS_TOKEN = os.getenv("MAPPLS_ACCESS_TOKEN")
 
 app = FastAPI(title="Traffic Intelligence Engine API — TraffiSense AI")
 
@@ -129,28 +128,13 @@ class PredictionResponse(BaseModel):
     commuter_delay_minutes: float = 0.0
 
 
-# ── Dynamic OSRM/Mappls routing helper ───────────────────────────────────────
+# ── OSRM routing helper ───────────────────────────────────────────────────────
 def get_real_diversion_route(lat: float, lng: float) -> list[dict]:
     lat_a, lng_a = lat - 0.003, lng - 0.003
     lat_b, lng_b = lat + 0.003, lng + 0.003
     lat_c, lng_c = lat + 0.002, lng - 0.002
-    
-    if MAPPLS_ACCESS_TOKEN:
-        mappls_url = f"https://apis.mappls.com/advancedmaps/v1/{MAPPLS_ACCESS_TOKEN}/route/driving/{lng_a},{lat_a};{lng_c},{lat_c};{lng_b},{lat_b}?overview=full&geometries=geojson"
-    else:
-        mappls_url = None
 
-    try:
-        response = requests.get(mappls_url, timeout=3.0) if mappls_url else None
-        if response is not None and response.status_code == 200:
-            data = response.json()
-            if "routes" in data and len(data["routes"]) > 0:
-                coords = data["routes"][0]["geometry"]["coordinates"]
-                return [{"lat": c[1], "lng": c[0]} for c in coords]
-    except Exception as e:
-        print("Mappls Directions API failed, trying OSRM:", e)
-
-    # Fallback to public free OSRM
+    # Public free OSRM routing
     osrm_url = f"http://router.project-osrm.org/route/v1/driving/{lng_a},{lat_a};{lng_c},{lat_c};{lng_b},{lat_b}?overview=full&geometries=geojson"
     try:
         response = requests.get(osrm_url, timeout=3.0)

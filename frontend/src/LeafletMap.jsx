@@ -21,7 +21,7 @@ const LeafletMap = ({ center, diversionRoute, radius }) => {
     <MapContainer
       center={[center.lat, center.lng]}
       zoom={15}
-      style={{ width: '100%', height: '100%', minHeight: '300px', borderRadius: '12px' }}
+      style={{ width: '100%', height: '400px', borderRadius: '12px' }}
     >
       <TileLayer
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
