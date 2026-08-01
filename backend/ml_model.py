@@ -100,9 +100,14 @@ def save_feature_importance(clf):
 
 
 
+MODEL_PATH = os.path.join(
+    ML_OUTPUT_PATH,
+    "model.joblib"
+)
+
 def train_and_save_model(
     data_path: str = DATA_PATH,
-    model_save_path: str = 'model.joblib'
+    model_save_path: str = MODEL_PATH
 ):
 
     print("Loading and cleaning data...")
