@@ -3,7 +3,7 @@
 Predictive traffic intelligence dashboard for event-driven congestion — forecasts gridlock impact and recommends resource deployment before it happens.
 
 **Live demo:** [traffi-sense-ai-neon.vercel.app](https://traffi-sense-ai-neon.vercel.app)
-**API:** [traffisense-ai-2.onrender.com](https://traffisense-ai-2.onrender.com) ([interactive docs](https://traffisense-ai-2.onrender.com/docs))
+**API docs:** [traffisense-ai-2.onrender.com/docs](https://traffisense-ai-2.onrender.com/docs) — the bare API root (`/`) intentionally returns `404 Not Found`, since this is an API-only backend with no route defined for `/`; only `/docs` and the actual `/api/...` endpoints resolve.
 
 ---
 
