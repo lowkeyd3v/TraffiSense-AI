@@ -40,10 +40,10 @@ button:active {
 }
 
 /* ── Scrollbar ────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f9fafb; }
-::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #d1d5db; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #f3f4f6; }
+::-webkit-scrollbar-thumb { background: #9ca3af; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
 /* recharts override */
 .recharts-tooltip-wrapper .recharts-default-tooltip {

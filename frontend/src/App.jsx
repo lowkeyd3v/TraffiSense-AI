@@ -139,17 +139,17 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 font-sans overflow-hidden">
+<div className="min-h-screen flex flex-col bg-gray-50 font-sans">
       {/* Taskbar / Navbar */}
       <div className="shrink-0 z-20 shadow-sm relative">
         <Header setView={setView} />
       </div>
 
       {/* ── Body ── */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex flex-1">
 
         {/* LEFT SIDEBAR */}
-        <aside className="w-96 bg-white border-r border-gray-200 overflow-y-auto flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <aside className="w-96 bg-white border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
           {/* Tab nav */}
           <div className="p-6 pb-0">
             <div className="flex gap-1 bg-gray-100 p-1 rounded-xl shadow-inner">
@@ -187,7 +187,7 @@ export default function App() {
             </div>
           )}
           {tab === 'predict'  && (
-            <div className="fade-in-up flex flex-col h-full">
+            <div className="fade-in-up flex flex-col">
               <SidebarForm 
                 form={form} 
                 setForm={setForm} 
@@ -206,18 +206,18 @@ export default function App() {
         </aside>
 
         {/* RIGHT MAIN */}
-        <main className="flex-1 bg-gray-50 overflow-y-auto flex flex-col">
+        <main className="flex-1 bg-gray-50">
           {tab === 'predict'   && <ResultsPanel results={results} />}
           {tab === 'feedback'  && <Feedback />}
           {tab === 'analytics' && (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col">
               <div className="p-4 px-6 border-b border-gray-200 bg-white shrink-0">
                 <div className="font-extrabold text-gray-900">Traffic Density Heatmap</div>
                 <div className="text-xs text-gray-500 mt-1">
                 Interactive traffic density map showing congestion hotspots across monitored regions.
                 </div>
               </div>
-              <div className="flex-1 min-h-0 overflow-hidden">
+              <div className="min-h-[700px]">
                 <GridMap
                   appliedFilters={appliedFilters}
                   pendingFilters={pendingFilters}
