@@ -2,7 +2,8 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from pydantic import BaseModel
+import re
+from pydantic import BaseModel, field_validator
 import joblib
 import pandas as pd
 import numpy as np
@@ -95,6 +96,9 @@ _precompute()
 # REQUEST / RESPONSE MODELS
 # ══════════════════════════════════════════════════════════════════════════════
 
+POLICE_STATION_MAX_LENGTH = 100
+POLICE_STATION_PATTERN = re.compile(r"^[A-Za-z0-9\s.\-]+$")
+
 class IncidentRequest(BaseModel):
     event_cause: str
     veh_type: str
@@ -109,6 +113,23 @@ class IncidentRequest(BaseModel):
     description: str
     event_scale: Optional[str] = "Medium"
     crowd_size: Optional[int] = 0
+
+    @field_validator("police_station")
+    @classmethod
+    def validate_police_station(cls, value: str) -> str:
+        v = (value or "").strip()
+        if not v:
+            raise ValueError("Police Station is required.")
+        if len(v) > POLICE_STATION_MAX_LENGTH:
+            raise ValueError(
+                f"Police Station must be {POLICE_STATION_MAX_LENGTH} characters or fewer."
+            )
+        if not POLICE_STATION_PATTERN.match(v):
+            raise ValueError(
+                "Police Station may only contain letters, numbers, spaces, "
+                "hyphens and periods."
+            )
+        return v
 
 class Coordinate(BaseModel):
     lat: float

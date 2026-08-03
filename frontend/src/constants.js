@@ -42,3 +42,21 @@ export function fmt(n, unit='') {
   if (n == null) return '—'
   return `${Math.round(n)}${unit}`
 }
+
+// ── Police Station validation ────────────────────────────────────────────
+// Letters, numbers, spaces, hyphens and periods only (e.g. "MG Road PS",
+// "Police Station No. 2"). Rejects symbols like @ # $ % ^ & *.
+export const POLICE_STATION_MAX_LENGTH = 100
+export const POLICE_STATION_PATTERN = /^[A-Za-z0-9\s.-]*$/
+
+export function validatePoliceStation(value) {
+  const v = (value || '').trim()
+  if (!v) return 'Police Station is required.'
+  if (v.length > POLICE_STATION_MAX_LENGTH) {
+    return `Police Station must be ${POLICE_STATION_MAX_LENGTH} characters or fewer.`
+  }
+  if (!POLICE_STATION_PATTERN.test(v)) {
+    return 'Only letters, numbers, spaces, hyphens and periods are allowed.'
+  }
+  return null
+}
