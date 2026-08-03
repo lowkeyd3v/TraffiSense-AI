@@ -36,35 +36,51 @@ metadata = MetaData()
 deployments = Table(
     "deployments", metadata,
     Column("id", Integer, primary_key=True, autoincrement=True),
-    Column("event_cause", String),
-    Column("veh_type", String),
+
+    # Frequently queried fields
+    Column("event_cause", String, index=True),
+    Column("veh_type", String, index=True),
     Column("corridor", String),
-    Column("priority", String),
-    Column("time", String),
+    Column("priority", String, index=True),
+    Column("time", String, index=True),
     Column("requires_road_closure", Boolean),
     Column("event_type", String),
-    Column("latitude", Float),
-    Column("longitude", Float),
-    Column("police_station", String),
+
+    # Location
+    Column("latitude", Float, index=True),
+    Column("longitude", Float, index=True),
+    Column("police_station", String, index=True),
+
     Column("description", String),
-    Column("event_scale", String),
+    Column("event_scale", String, index=True),
     Column("crowd_size", Integer),
+
+    # Predictions
     Column("predicted_duration", Float),
     Column("personnel", Integer),
     Column("barricades", Integer),
     Column("congestion_radius_meters", Float),
     Column("commuter_delay_minutes", Float),
-    Column("status", String, default="active"),
+
+    # Status
+    Column("status", String, default="active", index=True),
+
+    # Feedback
     Column("actual_duration", Float),
     Column("actual_personnel", Integer),
     Column("actual_barricades", Integer),
     Column("actual_congestion_radius", Float),
     Column("actual_delay", Float),
     Column("feedback_comments", String),
-    Column("created_at", DateTime(timezone=True), server_default=func.now()),
+
+    # Timestamp
+    Column(
+        "created_at",
+        DateTime(timezone=True),
+        server_default=func.now(),
+        index=True,
+    ),
 )
-
-
 def init_db():
     """Creates the deployments table if it doesn't exist."""
     metadata.create_all(engine)
