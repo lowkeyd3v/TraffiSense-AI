@@ -86,7 +86,7 @@ export default function Header({ setView }) {
                     AI Congestion Prediction
                   </h3>
                   <p className="text-sm">
-                    Random Forest ML model trained to predict clearance times
+                    Gradient Boosting Regressor ML model trained to predict clearance times
                     and road closures based on event parameters.
                   </p>
                 </div>
