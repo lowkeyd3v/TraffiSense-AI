@@ -14,7 +14,7 @@ import requests
 import os
 from dotenv import load_dotenv
 
-from fuzzy_engine import compute_resources
+from fuzzy_engine import compute_resources, compute_severity_score, score_to_level
 from data_pipeline import load_full_data
 
 load_dotenv()
@@ -147,6 +147,12 @@ class PredictionResponse(BaseModel):
     risk_level: str = "Low"                 # Low / Medium / High / Critical
     congestion_radius_meters: float = 0.0
     commuter_delay_minutes: float = 0.0
+    severity_score: float = 0.0             # 0-10, fuzzy input derived from
+                                             # severity keyword + event cause + veh type + closure
+    resource_allocation_score: float = 0.0  # 0-10, fuzzy output: overall deployment intensity
+    resource_allocation_level: str = "Low"  # Low / Medium / High / Critical
+    response_priority_score: float = 0.0    # 0-10, fuzzy output: dispatch urgency
+    response_priority_level: str = "Low"    # Low / Medium / High / Critical
 
 
 # ── OSRM routing helper ───────────────────────────────────────────────────────
@@ -221,21 +227,37 @@ def predict_resources(request: IncidentRequest):
 
     predicted_duration = max(0.0, predicted_duration)
 
-    # ── Fuzzy logic resources ────────────────────────────────────────────────
-    base_personnel, base_barricades = compute_resources(predicted_duration, corridor_priority)
+    # ── Severity score (feeds the fuzzy engine; issue #21) ───────────────────
+    # Blends the severity keyword flag with event_cause and veh_type risk
+    # weights, plus a bump for road closures.
+    severity_score = compute_severity_score(
+        bool(has_severity_keyword),
+        request.event_cause,
+        request.veh_type,
+        request.requires_road_closure,
+    )
+    crowd_size = request.crowd_size if request.crowd_size else 0
 
-    # ── Scale factors based on event scale & crowd size ──────────────────────
+    # ── Fuzzy logic resources ────────────────────────────────────────────────
+    # Duration, corridor priority, severity and crowd size are all fed
+    # directly into the fuzzy engine now, instead of crowd being bolted on
+    # afterwards as an ad-hoc log-scale multiplier.
+    personnel, barricades, resource_allocation_score, response_priority_score = compute_resources(
+        predicted_duration, corridor_priority, severity_score, crowd_size
+    )
+    resource_allocation_level = score_to_level(resource_allocation_score)
+    response_priority_level = score_to_level(response_priority_score)
+
+    # ── Scale factor for the user-declared event footprint (Small/Medium/Large) ──
+    # This is a distinct, explicitly chosen field (not the same as crowd_size)
+    # so it's still applied as a final adjustment on top of the fuzzy output.
     import math
     scale_factors = {'Small': 0.8, 'Medium': 1.2, 'Large': 2.0}
     scale_factor = scale_factors.get(request.event_scale, 1.2)
-    
-    crowd_size = request.crowd_size if request.crowd_size else 0
-    crowd_factor = 1.0 + (math.log10(max(1, crowd_size)) / 3.0 if crowd_size > 0 else 0.0)
-    
-    # Scale resources based on event size/crowd size
-    personnel = int(round(base_personnel * scale_factor * crowd_factor))
-    barricades = int(round(base_barricades * scale_factor * crowd_factor))
-    
+
+    personnel = int(round(personnel * scale_factor))
+    barricades = int(round(barricades * scale_factor))
+
     # Cap resources to realistic bounds
     personnel = max(1, min(30, personnel))
     barricades = max(0, min(80, barricades))
@@ -244,6 +266,7 @@ def predict_resources(request: IncidentRequest):
     # Congestion radius: 4m per minute of delay
     base_radius = predicted_duration * 4.0  
     priority_factor = {1: 1.0, 2: 1.5, 3: 2.2}.get(corridor_priority, 1.0)
+    crowd_factor = 1.0 + (math.log10(max(1, crowd_size)) / 3.0 if crowd_size > 0 else 0.0)
     # Scale up based on severity but cap it to avoid massive map circles
     congestion_radius = base_radius * scale_factor * priority_factor
     congestion_radius = max(100.0, min(1200.0, round(congestion_radius, 1)))
@@ -294,6 +317,11 @@ def predict_resources(request: IncidentRequest):
         risk_level=risk_level,
         congestion_radius_meters=congestion_radius,
         commuter_delay_minutes=commuter_delay,
+        severity_score=severity_score,
+        resource_allocation_score=resource_allocation_score,
+        resource_allocation_level=resource_allocation_level,
+        response_priority_score=response_priority_score,
+        response_priority_level=response_priority_level,
     )
 
 
