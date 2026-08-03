@@ -34,11 +34,36 @@ export default function ResultsPanel({ results }) {
     try {
       const { API } = await import('../constants')
       const axios = (await import('axios')).default
-      await axios.post(`${API}/api/deployments`, { form, predictions: r })
+      const payload = {
+  form: {
+    event_cause: form.event_cause,
+    veh_type: form.veh_type,
+    corridor: form.corridor,
+    priority: form.priority,
+    time: form.time,
+    requires_road_closure: form.requires_road_closure,
+    event_type: form.event_type,
+    latitude: form.latitude,
+    longitude: form.longitude,
+    police_station: form.police_station,
+    description: form.description,
+    event_scale: form.event_scale,
+    crowd_size: form.crowd_size
+  },
+  predictions: {
+    predicted_duration: r.predicted_duration_minutes,
+    personnel: r.personnel_needed,
+    barricades: r.barricades_needed,
+    congestion_radius_meters: r.congestion_radius_meters,
+    commuter_delay_minutes: r.commuter_delay_minutes
+  }
+}
+
+await axios.post(`${API}/api/deployments`, payload)
       setToast(true)
       setTimeout(()=>setToast(false),3000)
     } catch (err) {
-      console.error("Failed to deploy TraffiSense AI Field Units", err)
+      console.error("Deployment request failed")
       alert("Failed to submit deployment to server.")
     }
   }
@@ -264,3 +289,4 @@ export default function ResultsPanel({ results }) {
     </div>
   )
 }
+
