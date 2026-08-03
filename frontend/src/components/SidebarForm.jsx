@@ -12,15 +12,25 @@ export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FO
     setPoliceStationError(validatePoliceStation(value))
   }
 
-  const handleSubmit = e => {
-    const err = validatePoliceStation(form.police_station)
-    setPoliceStationError(err)
-    if (err) {
-      e.preventDefault()
-      return
-    }
-    submit(e)
+ const handleSubmit = e => {
+  const err = validatePoliceStation(form.police_station)
+  setPoliceStationError(err)
+
+  if (err) {
+    e.preventDefault()
+    return
   }
+
+  // Prevent future date/time
+  if (form.time && new Date(form.time) > new Date()) {
+    e.preventDefault()
+    alert("Event time cannot be in the future.")
+    return
+  }
+
+  submit(e)
+}
+ 
 
   const labelClass = "block text-[0.65rem] font-extrabold text-fk-blue uppercase tracking-widest mb-1.5"
   const inputClass = "w-full rounded-xl border-2 border-gray-100 bg-white hover:border-gray-200 text-gray-900 font-medium text-sm p-3 focus:outline-none focus:border-fk-blue focus:ring-0 transition-colors shadow-sm"
@@ -83,7 +93,20 @@ export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FO
 
       <div>
         <label className={labelClass}>Event Time</label>
-        <input type="datetime-local" name="time" value={form.time} onChange={handle} className={inputClass}/>
+        <input
+          type="datetime-local"
+          name="time"
+          value={form.time}
+          onChange={handle}
+          className={inputClass}
+          max={new Date().toISOString().slice(0, 16)}
+        />
+
+        {form.time && new Date(form.time) > new Date() && (
+         <p className="text-red-500 text-sm mt-1">
+           Event time cannot be in the future.
+        </p>
+   )}
       </div>
 
       <div>
