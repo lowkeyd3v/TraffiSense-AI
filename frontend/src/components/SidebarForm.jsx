@@ -49,7 +49,7 @@ export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FO
       <div>
         <label className={labelClass}>Vehicle Type</label>
         <select name="veh_type" value={form.veh_type} onChange={handle} className={inputClass}>
-          {VEH_TYPES.map(v=><option key={v} value={v}>{VEH_TYPE_LABLES[v]|v}</option>)}
+          {VEH_TYPES.map(v=><option key={v} value={v}>{VEH_TYPE_LABELS[v]|v}</option>)}
         </select>
       </div>
 
