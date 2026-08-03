@@ -30,6 +30,19 @@ export const CAUSE_LABELS = {
   vip_movement: 'VIP Movement', road_conditions: 'Road Conditions',
   others: 'Others'
 }
+export const VEH_TYPE_LABELS = {
+  heavy_vehicle: 'Heavy Vehicle',
+  lcv: 'LCV',
+  bmtc_bus: 'BMTC Bus',
+  private_bus: 'Private Bus',
+  private_car: 'Private Car',
+  ksrtc_bus: 'KSRTC Bus',
+  truck: 'Truck',
+  auto: 'Auto',
+  taxi: 'Taxi',
+  others: 'Others',
+  unknown: 'Unknown',
+}
 
 export const RISK_CONFIG = {
   Critical: { cls: 'risk-critical', dot: '#ef4444' },

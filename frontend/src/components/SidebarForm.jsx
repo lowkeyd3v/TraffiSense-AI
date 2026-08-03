@@ -1,5 +1,5 @@
 import React from 'react'
-import { EVENT_CAUSES, VEH_TYPES, CORRIDORS, CAUSE_LABELS } from '../constants'
+import { EVENT_CAUSES, VEH_TYPES, CORRIDORS, CAUSE_LABELS,VEH_TYPE_LABELS } from '../constants'
 
 export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FORM, setResults }) {
   const set = (k,v) => setForm(f=>({...f,[k]:v}))
@@ -49,7 +49,7 @@ export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FO
       <div>
         <label className={labelClass}>Vehicle Type</label>
         <select name="veh_type" value={form.veh_type} onChange={handle} className={inputClass}>
-          {VEH_TYPES.map(v=><option key={v} value={v}>{v.replace(/_/g,' ')}</option>)}
+          {VEH_TYPES.map(v=><option key={v} value={v}>{VEH_TYPE_LABLES[v]|v}</option>)}
         </select>
       </div>
 
