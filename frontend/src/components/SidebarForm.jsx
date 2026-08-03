@@ -76,7 +76,17 @@ export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FO
       <div>
         <label className={labelClass}>Vehicle Type</label>
         <select name="veh_type" value={form.veh_type} onChange={handle} className={inputClass}>
-          {VEH_TYPES.map(v=><option key={v} value={v}>{v.replace(/_/g,' ')}</option>)}
+          {VEH_TYPES.map(v => (
+  <option key={v} value={v}>
+    {v
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, c => c.toUpperCase())
+      .replace("Lcv", "LCV")
+      .replace("Bmtc", "BMTC")
+      .replace("Ksrtc", "KSRTC")
+      .replace("Vip", "VIP")}
+  </option>
+))}
         </select>
       </div>
 
