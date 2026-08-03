@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import axios from 'axios'
 import Header from './components/Header'
 import SidebarForm from './components/SidebarForm'
@@ -26,6 +26,13 @@ const DEFAULT_FILTERS = { hourStart: 0, hourEnd: 23, month: 0 }
 export default function App() {
   const [view, setView] = useState('landing') // 'landing' | 'dashboard'
   const [tab, setTab] = useState('predict')
+  
+  // ── Disable the browser's default right-click context menu app-wide ──────
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault()
+    document.addEventListener('contextmenu', handleContextMenu)
+    return () => document.removeEventListener('contextmenu', handleContextMenu)
+  }, [])
 
   // ── Shared analytics state (lifted for GridMap / Analytics) ──────────────
   const [appliedFilters, setApplied]  = useState(DEFAULT_FILTERS)
