@@ -5,7 +5,7 @@ psycopg2-binary
 pandas
 numpy
 scipy
-scikit-learn==1.6.0
+scikit-learn==1.9.0
 scikit-fuzzy
 joblib
 pydantic
