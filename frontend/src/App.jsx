@@ -153,10 +153,10 @@ export default function App() {
       </div>
 
       {/* ── Body ── */}
-      <div className="flex flex-1">
+      <div className="flex flex-col lg:flex-row flex-1 overflow-x-hidden">
 
         {/* LEFT SIDEBAR */}
-        <aside className="w-96 bg-white border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <aside className="w-full lg:w-96 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
           {/* Tab nav */}
           <div className="p-6 pb-0">
             <div className="flex gap-1 bg-gray-100 p-1 rounded-xl shadow-inner">
@@ -213,7 +213,7 @@ export default function App() {
         </aside>
 
         {/* RIGHT MAIN */}
-        <main className="flex-1 bg-gray-50">
+        <main className="flex-1 bg-gray-50 overflow-x-hidden">
           {tab === 'predict'   && <ResultsPanel results={results} />}
           {tab === 'feedback'  && <Feedback />}
           {tab === 'analytics' && (
@@ -224,7 +224,7 @@ export default function App() {
                 Interactive traffic density map showing congestion hotspots across monitored regions.
                 </div>
               </div>
-              <div className="min-h-[700px]">
+              <div className="min-h-[500px] md:min-h-[650px]">
                 <GridMap
                   appliedFilters={appliedFilters}
                   pendingFilters={pendingFilters}

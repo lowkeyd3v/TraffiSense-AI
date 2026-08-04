@@ -5,26 +5,26 @@ export default function Header({ setView }) {
 
   return (
     <>
-      <header className="bg-white border-b border-gray-100 flex items-center justify-between p-4 px-8 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-100 flex flex-col lg:flex-row items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-50">
         <div
-          className="flex items-center gap-3 cursor-pointer"
+          className="flex items-center gap-3 cursor-pointer self-start lg:self-auto"
           onClick={() => setView && setView("landing")}
         >
           <div className="w-9 h-9 bg-fk-yellow text-fk-blue rounded-lg flex items-center justify-center font-extrabold text-xl shadow-sm">
             Ts
           </div>
           <div className="flex items-center gap-1.5">
-            <span className="text-2xl font-black tracking-tight text-gray-900 leading-none">
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-gray-900 leading-none">
               TraffiSense
             </span>
-            <span className="text-2xl font-black tracking-tight text-fk-blue leading-none">
+            <span className="text-xl sm:text-2xl font-black tracking-tight text-fk-blue leading-none">
               AI
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
-          <nav className="hidden md:flex items-center gap-4 text-sm font-bold text-gray-500">
+        <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-6 w-full lg:w-auto">
+          <nav className="hidden md:flex items-center gap-2 lg:gap-4 text-sm font-bold text-gray-500">
             <button
               onClick={() => setIsModalOpen(true)}
               className="hover:text-fk-blue transition-colors px-3 py-1.5 rounded-full hover:bg-blue-50"
@@ -44,17 +44,17 @@ export default function Header({ setView }) {
             </a>
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
             {setView && (
               <button
                 onClick={() => setView("live_feeds")}
-                className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-sm font-extrabold shadow-sm transition-all flex items-center gap-2"
+                className="w-full sm:w-auto justify-center bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-sm font-extrabold shadow-sm transition-all flex items-center gap-2"
               >
                 <div className="w-2 h-2 rounded-full bg-white animate-ping" />
                 Live Feed
               </button>
             )}
-            <div className="bg-fk-blue text-white px-5 py-2 rounded-full text-sm font-extrabold shadow-md flex items-center gap-2">
+            <div className="w-full sm:w-auto justify-center bg-fk-blue text-white px-5 py-2 rounded-full text-sm font-extrabold shadow-md flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
               SYSTEM ONLINE
             </div>
@@ -65,7 +65,7 @@ export default function Header({ setView }) {
       {/* Features Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative overflow-hidden">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-8 relative">
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
@@ -77,7 +77,7 @@ export default function Header({ setView }) {
             </h2>
 
             <div className="space-y-6 text-gray-700">
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="w-12 h-12 shrink-0 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl font-bold">
                   🤖
                 </div>
@@ -91,7 +91,7 @@ export default function Header({ setView }) {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="w-12 h-12 shrink-0 bg-yellow-50 text-yellow-600 rounded-xl flex items-center justify-center text-xl font-bold">
                   🗺️
                 </div>
@@ -106,7 +106,7 @@ export default function Header({ setView }) {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="w-12 h-12 shrink-0 bg-red-50 text-red-600 rounded-xl flex items-center justify-center text-xl font-bold">
                   📡
                 </div>
@@ -121,7 +121,7 @@ export default function Header({ setView }) {
                   </p>
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex flex-col sm:flex-row gap-4">
                 <div className="w-12 h-12 shrink-0 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl font-bold">
                   📱
                 </div>
