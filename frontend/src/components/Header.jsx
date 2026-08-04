@@ -2,28 +2,29 @@ import React, { useState } from "react";
 
 export default function Header({ setView }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
     <>
-      <header className="bg-white border-b border-gray-100 flex items-center justify-between p-4 px-8 sticky top-0 z-50">
+      <header className="bg-white border-b border-gray-100 flex items-center justify-between gap-2 p-3 px-4 sm:p-4 sm:px-8 sticky top-0 z-50">
         <div
-          className="flex items-center gap-3 cursor-pointer"
+          className="flex items-center gap-2 sm:gap-3 cursor-pointer min-w-0"
           onClick={() => setView && setView("landing")}
         >
-          <div className="w-9 h-9 bg-fk-yellow text-fk-blue rounded-lg flex items-center justify-center font-extrabold text-xl shadow-sm">
+          <div className="w-8 h-8 sm:w-9 sm:h-9 shrink-0 bg-fk-yellow text-fk-blue rounded-lg flex items-center justify-center font-extrabold text-lg sm:text-xl shadow-sm">
             Ts
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-2xl font-black tracking-tight text-gray-900 leading-none">
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0">
+            <span className="text-lg sm:text-2xl font-black tracking-tight text-gray-900 leading-none truncate">
               TraffiSense
             </span>
-            <span className="text-2xl font-black tracking-tight text-fk-blue leading-none">
+            <span className="text-lg sm:text-2xl font-black tracking-tight text-fk-blue leading-none shrink-0">
               AI
             </span>
           </div>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-2 sm:gap-6 shrink-0">
           <nav className="hidden md:flex items-center gap-4 text-sm font-bold text-gray-500">
             <button
               onClick={() => setIsModalOpen(true)}
@@ -44,35 +45,78 @@ export default function Header({ setView }) {
             </a>
           </nav>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4">
             {setView && (
               <button
                 onClick={() => setView("live_feeds")}
-                className="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-full text-sm font-extrabold shadow-sm transition-all flex items-center gap-2"
+                className="bg-red-500 hover:bg-red-600 text-white px-3 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold shadow-sm transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap"
               >
-                <div className="w-2 h-2 rounded-full bg-white animate-ping" />
-                Live Feed
+                <div className="w-2 h-2 rounded-full bg-white animate-ping shrink-0" />
+                <span className="hidden sm:inline">Live Feed</span>
+                <span className="sm:hidden">Live</span>
               </button>
             )}
-            <div className="bg-fk-blue text-white px-5 py-2 rounded-full text-sm font-extrabold shadow-md flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-              SYSTEM ONLINE
+            <div className="bg-fk-blue text-white px-2.5 sm:px-5 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-extrabold shadow-md flex items-center gap-1.5 sm:gap-2 whitespace-nowrap">
+              <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
+              <span className="hidden sm:inline">SYSTEM ONLINE</span>
             </div>
+
+            {/* Mobile menu toggle — only shown below md, where the nav links are hidden */}
+            <button
+              onClick={() => setIsMobileMenuOpen(o => !o)}
+              aria-label="Open menu"
+              aria-expanded={isMobileMenuOpen}
+              className="md:hidden shrink-0 w-8 h-8 flex items-center justify-center rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 transition-colors"
+            >
+              {isMobileMenuOpen ? (
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              ) : (
+                <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <path d="M3 6h18M3 12h18M3 18h18" />
+                </svg>
+              )}
+            </button>
           </div>
         </div>
       </header>
 
+      {/* Mobile menu dropdown — Features + GitHub, hidden from md up since the inline nav covers it there */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden sticky top-[57px] sm:top-[65px] z-40 bg-white border-b border-gray-100 shadow-md px-4 py-3 flex flex-col gap-1">
+          <button
+            onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
+            className="text-left text-sm font-bold text-gray-600 hover:text-fk-blue hover:bg-blue-50 transition-colors px-3 py-2.5 rounded-lg"
+          >
+            ℹ️ Features
+          </button>
+          <a
+            href="https://github.com/lowkeyd3v/TraffiSense-AI"
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="text-sm font-bold text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors flex items-center gap-2 px-3 py-2.5 rounded-lg"
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current shrink-0">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12" />
+            </svg>
+            GitHub
+          </a>
+        </div>
+      )}
+
       {/* Features Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-8 relative overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full p-5 sm:p-8 relative overflow-y-auto max-h-[90vh]">
             <button
               onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
+              className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 transition-colors"
             >
               ✕
             </button>
-            <h2 className="text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
+            <h2 className="text-xl sm:text-2xl font-black text-gray-900 mb-6 flex items-center gap-3">
               <span className="text-3xl">✨</span> Platform Features
             </h2>
 

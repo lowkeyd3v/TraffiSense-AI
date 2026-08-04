@@ -73,33 +73,33 @@ export default function LiveFeeds({ onEventSelect, onBack }) {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
       
-      <div className="max-w-6xl mx-auto w-full p-8 mt-8 fade-in-up">
+      <div className="max-w-6xl mx-auto w-full p-5 sm:p-8 mt-4 sm:mt-8 fade-in-up">
         {/* Header Section */}
-        <div className="mb-12 flex flex-col items-center text-center">
-          <div className="flex items-center gap-3 text-xs font-bold text-gray-400 uppercase tracking-widest mb-8 border border-gray-200 px-4 py-2 rounded-full shadow-sm">
+        <div className="mb-8 sm:mb-12 flex flex-col items-center text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs font-bold text-gray-400 uppercase tracking-widest mb-6 sm:mb-8 border border-gray-200 px-4 py-2 rounded-full shadow-sm">
             <span className="flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE SIMULATION</span>
-            <span>·</span>
+            <span className="hidden sm:inline">·</span>
             <span>API AGGREGATOR</span>
           </div>
 
-          <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-gray-900 tracking-tight mb-4 sm:mb-6">
             Live Event <span className="text-fk-blue">Feeds</span>
           </h1>
-          <p className="text-gray-500 font-medium text-xl max-w-3xl">
+          <p className="text-gray-500 font-medium text-base sm:text-xl max-w-3xl">
             Aggregating data from ticketing platforms, weather APIs, and social media to predict planned and unplanned congestion before it hits the grid.
           </p>
         </div>
 
         {/* Feed Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
           {SIMULATED_FEEDS.map((feed, idx) => (
             <div key={feed.id} className="bg-white rounded-[2rem] border border-gray-200 overflow-hidden hover:-translate-y-2 transition-transform duration-300 flex flex-col shadow-sm hover:shadow-2xl group cursor-pointer" style={{animationDelay: `${idx * 0.1}s`}}>
-              <div className="p-8 flex-1 flex flex-col">
+              <div className="p-6 sm:p-8 flex-1 flex flex-col">
                 <div className="text-xs font-extrabold text-fk-blue uppercase tracking-widest mb-4">
                   {feed.source}
                 </div>
                 
-                <h3 className="font-black text-3xl text-gray-900 leading-tight mb-4">{feed.title}</h3>
+                <h3 className="font-black text-2xl sm:text-3xl text-gray-900 leading-tight mb-4">{feed.title}</h3>
                 
                 <div className="flex items-center gap-2 mb-6">
                    <span className="text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1.5 rounded-full whitespace-nowrap">

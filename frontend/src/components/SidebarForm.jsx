@@ -1,32 +1,15 @@
-import React, { useState } from 'react'
-import { EVENT_CAUSES, VEH_TYPES, CORRIDORS, CAUSE_LABELS, POLICE_STATION_MAX_LENGTH, validatePoliceStation } from '../constants'
+import React from 'react'
+import { EVENT_CAUSES, VEH_TYPES, CORRIDORS, CAUSE_LABELS } from '../constants'
 
 export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FORM, setResults }) {
   const set = (k,v) => setForm(f=>({...f,[k]:v}))
   const handle = e => set(e.target.name, e.target.value)
 
-  const [policeStationError, setPoliceStationError] = useState(null)
-  const handlePoliceStation = e => {
-    const value = e.target.value
-    set('police_station', value)
-    setPoliceStationError(validatePoliceStation(value))
-  }
-
-  const handleSubmit = e => {
-    const err = validatePoliceStation(form.police_station)
-    setPoliceStationError(err)
-    if (err) {
-      e.preventDefault()
-      return
-    }
-    submit(e)
-  }
-
   const labelClass = "block text-[0.65rem] font-extrabold text-fk-blue uppercase tracking-widest mb-1.5"
   const inputClass = "w-full rounded-xl border-2 border-gray-100 bg-white hover:border-gray-200 text-gray-900 font-medium text-sm p-3 focus:outline-none focus:border-fk-blue focus:ring-0 transition-colors shadow-sm"
 
   return (
-    <form onSubmit={handleSubmit} className="p-8 flex flex-col gap-6 flex-1 bg-white">
+    <form onSubmit={submit} className="p-4 sm:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6 flex-1 bg-white">
       
       <div className="flex bg-gray-50 p-1.5 rounded-2xl border border-gray-100">
         {['unplanned','planned'].map(t=>(
@@ -88,17 +71,8 @@ export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FO
 
       <div>
         <label className={labelClass}>Police Station</label>
-        <input name="police_station" value={form.police_station} onChange={handlePoliceStation}
-          maxLength={POLICE_STATION_MAX_LENGTH}
-          aria-invalid={!!policeStationError}
-          aria-describedby="police_station_error"
-          placeholder="e.g. Cubbon Park"
-          className={`${inputClass} ${policeStationError ? 'border-red-400 focus:border-red-500' : ''}`}/>
-        {policeStationError && (
-          <p id="police_station_error" className="mt-1.5 text-xs font-semibold text-red-500">
-            {policeStationError}
-          </p>
-        )}
+        <input name="police_station" value={form.police_station} onChange={handle}
+          placeholder="e.g. Cubbon Park" className={inputClass}/>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

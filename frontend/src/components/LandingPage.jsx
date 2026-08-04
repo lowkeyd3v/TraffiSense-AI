@@ -5,7 +5,7 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
     <div className="flex flex-col md:flex-row min-h-screen">
 
       {/* Left Side: Content & Scenarios */}
-      <div className="flex-1 p-8 md:p-16 flex flex-col items-start fade-in-up">
+      <div className="flex-1 p-5 sm:p-8 md:p-16 flex flex-col items-start fade-in-up">
 
         <h1 className="text-5xl md:text-7xl font-black text-gray-900 tracking-tight leading-[1.05] mb-6 max-w-xl">
           Making India <span className="text-fk-blue">move smarter</span>
@@ -111,7 +111,7 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
             onClick={() => onScenarioSelect('vip_movement')}
             className="group cursor-pointer bg-white border border-gray-200 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:border-yellow-300 transition-all w-full flex items-start gap-6"
           >
-            <div className="w-16 h-16 shrink-0 bg-yellow-50 text-yellow-600 rounded-full flex into-center justify-center text-3xl group-hover:scale-110 transition-transform">
+            <div className="w-16 h-16 shrink-0 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
               🚔
             </div>
 
@@ -155,11 +155,11 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
 
       {/* Right Side */}
       <div
-        className="flex-1 p-8 md:p-16 flex items-center justify-center bg-gray-50 border-l border-gray-100 fade-in-up"
+        className="flex-1 p-5 sm:p-8 md:p-16 flex items-center justify-center bg-gray-50 border-l border-gray-100 fade-in-up"
         style={{ animationDelay: '0.1s' }}
       >
 
-        <div className="bg-fk-blue rounded-[2.5rem] p-12 text-center flex flex-col items-center shadow-2xl w-full max-w-xl relative overflow-hidden">
+        <div className="bg-fk-blue rounded-[2rem] sm:rounded-[2.5rem] p-7 sm:p-12 text-center flex flex-col items-center shadow-2xl w-full max-w-xl relative overflow-hidden">
 
           <div className="text-xs font-black text-blue-200 uppercase tracking-widest mb-10">
             TRAFFISENSE AI CONTROL CENTER

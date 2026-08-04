@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import axios from 'axios'
 import Header from './components/Header'
 import SidebarForm from './components/SidebarForm'
@@ -26,6 +26,13 @@ const DEFAULT_FILTERS = { hourStart: 0, hourEnd: 23, month: 0 }
 export default function App() {
   const [view, setView] = useState('landing') // 'landing' | 'dashboard'
   const [tab, setTab] = useState('predict')
+  
+  // ── Disable the browser's default right-click context menu app-wide ──────
+  useEffect(() => {
+    const handleContextMenu = (e) => e.preventDefault()
+    document.addEventListener('contextmenu', handleContextMenu)
+    return () => document.removeEventListener('contextmenu', handleContextMenu)
+  }, [])
 
   // ── Shared analytics state (lifted for GridMap / Analytics) ──────────────
   const [appliedFilters, setApplied]  = useState(DEFAULT_FILTERS)
@@ -139,19 +146,19 @@ export default function App() {
   }
 
   return (
-<div className="min-h-screen flex flex-col bg-gray-50 font-sans">
+<div className="min-h-screen flex flex-col bg-gray-50 font-sans overflow-x-hidden">
       {/* Taskbar / Navbar */}
       <div className="shrink-0 z-20 shadow-sm relative">
         <Header setView={setView} />
       </div>
 
       {/* ── Body ── */}
-      <div className="flex flex-1">
+      	<div className="flex flex-col lg:flex-row flex-1 min-w-0">
 
         {/* LEFT SIDEBAR */}
-        <aside className="w-96 bg-white border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+        <aside className="w-full lg:w-96 lg:shrink-0 bg-white border-b lg:border-b-0 lg:border-r border-gray-200 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
           {/* Tab nav */}
-          <div className="p-6 pb-0">
+          <div className="p-4 sm:p-6 pb-0">
             <div className="flex gap-1 bg-gray-100 p-1 rounded-xl shadow-inner">
               <button 
                 className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${tab==='predict' ? 'bg-white text-blue-600 shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`} 
@@ -160,7 +167,7 @@ export default function App() {
                 🚦 Prediction
               </button>
               <button 
-                className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition-all ${tab==='analytics' ? 'bg-white text-blue-600 shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`} 
+                className={`flex-1 py-2 px-2 sm:px-3 rounded-lg text-[0.65rem] sm:text-xs font-bold transition-all ${tab==='analytics' ? 'bg-white text-blue-600 shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'}`} 
                 onClick={() => setTab('analytics')}
               >
                 📈 Analytics
@@ -182,7 +189,7 @@ export default function App() {
               onClearCluster={clearCluster}
             />}
           {tab === 'feedback'  && (
-            <div className="p-6 text-sm text-gray-500 leading-relaxed font-semibold fade-in-up">
+            <div className="p-4 sm:p-6 text-sm text-gray-500 leading-relaxed font-semibold fade-in-up">
               Submit feedback to improve prediction accuracy and help retrain the machine learning model using real traffic events.
             </div>
           )}
@@ -197,7 +204,7 @@ export default function App() {
                 setResults={setResults} 
               />
               {error && (
-                <div className="mx-6 mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm flex gap-2">
+                <div className="mx-4 sm:mx-6 mb-4 sm:mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm flex gap-2">
                   <span>⚠️</span>{error}
                 </div>
               )}
@@ -206,18 +213,18 @@ export default function App() {
         </aside>
 
         {/* RIGHT MAIN */}
-        <main className="flex-1 bg-gray-50">
+        <main className="flex-1 min-w-0 bg-gray-50">
           {tab === 'predict'   && <ResultsPanel results={results} />}
           {tab === 'feedback'  && <Feedback />}
           {tab === 'analytics' && (
             <div className="flex flex-col">
-              <div className="p-4 px-6 border-b border-gray-200 bg-white shrink-0">
+              <div className="p-4 px-4 sm:px-6 border-b border-gray-200 bg-white shrink-0">
                 <div className="font-extrabold text-gray-900">Traffic Density Heatmap</div>
                 <div className="text-xs text-gray-500 mt-1">
                 Interactive traffic density map showing congestion hotspots across monitored regions.
                 </div>
               </div>
-              <div className="min-h-[700px]">
+              <div className="min-h-[500px] sm:min-h-[700px]">
                 <GridMap
                   appliedFilters={appliedFilters}
                   pendingFilters={pendingFilters}
