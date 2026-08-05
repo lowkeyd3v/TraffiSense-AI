@@ -10,12 +10,15 @@ import Feedback from './Feedback'
 import LiveFeeds from './components/LiveFeeds'
 import { API } from './constants'
 
+// Default location: Mysore Road corridor, Bengaluru (median lat/lng of
+// dataset rows tagged "Mysore Road" — falls inside the backend's Bengaluru
+// bounding box used by grid density / DBSCAN, unlike the old Delhi default).
 const DEFAULT_FORM = {
   event_cause:'vehicle_breakdown', veh_type:'heavy_vehicle',
-  corridor: "National Highway 44", priority:'High',
+  corridor: "Mysore Road", priority:'High',
   time: new Date().toISOString().slice(0,16),
   requires_road_closure:false, event_type:'unplanned',
-  latitude: 28.6139, longitude: 77.2090,
+  latitude: 12.9620, longitude: 77.5665,
   police_station: "Central Traffic Control", description:'',
   event_scale: 'Medium',
   crowd_size: 0
@@ -77,11 +80,11 @@ export default function App() {
     setForm({
       ...DEFAULT_FORM,
       event_cause: "water_logging",
-      corridor: "National Highway 48",
+      corridor: "Tumkur Road",
       veh_type: "unknown",
       priority: "High",
-      latitude: 28.5355,
-      longitude: 77.3910,
+      latitude: 13.0320,
+      longitude: 77.5347,
       police_station: "Traffic Control Unit",
       description: "Severe waterlogging causing heavy traffic congestion.",
       requires_road_closure: true,
@@ -90,11 +93,11 @@ export default function App() {
     setForm({
       ...DEFAULT_FORM,
       event_cause: "accident",
-      corridor: "Ring Road",
+      corridor: "ORR East 1",
       veh_type: "heavy_vehicle",
       priority: "High",
-      latitude: 28.6139,
-      longitude: 77.2090,
+      latitude: 12.9264,
+      longitude: 77.6778,
       police_station: "Central Traffic Control",
       description: "Major road accident causing severe congestion.",
       requires_road_closure: true,
@@ -103,11 +106,11 @@ export default function App() {
     setForm({
       ...DEFAULT_FORM,
       event_cause: "vip_movement",
-      corridor: "Airport Expressway",
+      corridor: "Hosur Road",
       veh_type: "others",
       priority: "Medium",
-      latitude: 28.5562,
-      longitude: 77.1000,
+      latitude: 12.9196,
+      longitude: 77.6215,
       police_station: "Airport Traffic Unit",
       description: "Temporary traffic diversion due to VIP movement.",
       requires_road_closure: false,
