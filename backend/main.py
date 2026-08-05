@@ -619,11 +619,6 @@ def resolve_existing_deployment(deployment_id: int, feedback: DeploymentFeedback
         
     return {"status": "success", "deployment": res}
 
-# ══════════════════════════════════════════════════════════════════════════════
-# SERVE REACT FRONTEND (Must be at the very bottom)
-# ══════════════════════════════════════════════════════════════════════════════
-
-
 @app.get("/api/analytics/summary")
 def analytics_summary(
     hour_start: int = Query(0,  ge=0, le=23),
