@@ -140,8 +140,14 @@ def _rule_table():
                     yield d, p, s, c, personnel_lvl, barricade_lvl, resource_lvl, response_lvl
 
 
-def get_fuzzy_system():
-    """Builds the IRC:SP:55 / MoRTH-aligned fuzzy system (see module docstring)."""
+def _build_control_system() -> ctrl.ControlSystem:
+    """Builds the IRC:SP:55 / MoRTH-aligned fuzzy ControlSystem (see module
+    docstring). This constructs the antecedents, consequents, membership
+    functions and the full 81-rule base — the expensive, but constant, part
+    of the fuzzy system. It is called exactly once per process (see
+    `_RESOURCE_CONTROL_SYSTEM` below); callers should never call this
+    directly on the request path.
+    """
     # ── Antecedents (Inputs) ────────────────────────────────────────────────
     predicted_duration = ctrl.Antecedent(np.arange(0, 301, 1), 'predicted_duration')
     corridor_priority = ctrl.Antecedent(np.arange(1, 4, 1), 'corridor_priority')
@@ -217,10 +223,25 @@ def get_fuzzy_system():
         )
         rules.append(ctrl.Rule(antecedent, consequent))
 
-    resource_ctrl = ctrl.ControlSystem(rules)
-    resource_sim = ctrl.ControlSystemSimulation(resource_ctrl)
+    return ctrl.ControlSystem(rules)
 
-    return resource_sim
+
+# Built once at import time (i.e. once per worker process on startup), not
+# per-request. The ControlSystem holds the antecedents/consequents/rules,
+# all of which are read-only once built, so it's safe to share across
+# concurrently-handled requests. See issue #42.
+_RESOURCE_CONTROL_SYSTEM = _build_control_system()
+
+
+def get_fuzzy_system() -> ctrl.ControlSystemSimulation:
+    """Returns a fresh `ControlSystemSimulation` bound to the cached, shared
+    `ControlSystem`. A new simulation is created per call (cheap) because
+    `ControlSystemSimulation` carries request-specific input/output state
+    that is NOT safe to share across concurrent requests — `/api/predict`
+    is a sync endpoint, so FastAPI runs it in a threadpool and multiple
+    requests can genuinely execute this concurrently.
+    """
+    return ctrl.ControlSystemSimulation(_RESOURCE_CONTROL_SYSTEM)
 
 
 def compute_resources(duration_mins: float, priority: int, severity_score: float = 0.0,
