@@ -111,6 +111,13 @@ The API will be live at `http://127.0.0.1:8000`, with interactive docs at `/docs
 
 By default the backend uses a local SQLite database (`db.sqlite3`). To use Postgres locally instead, set a `DATABASE_URL` environment variable before starting the server.
 
+By default the backend allows requests from `http://localhost:5173` and `https://traffisense-ai.vercel.app`.
+To allow additional origins (e.g. a custom domain or a Vercel preview URL), set `ALLOWED_ORIGINS` as a
+comma-separated list before starting the server, e.g.:
+```bash
+export ALLOWED_ORIGINS="https://traffisense-ai.vercel.app,https://your-preview-url.vercel.app"
+```
+
 ### Frontend
 ```bash
 cd frontend
