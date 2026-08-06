@@ -5,8 +5,8 @@ services:
     plan: free              # bump to starter+ if you add a persistent disk instead of Postgres
     rootDir: backend
     buildCommand: >
-      pip install -r requirements.txt &&
-      python ml_model.py &&
+      pip install -r backend/requirements.txt &&
+      python backend/ml_model.py &&
       cp ../ml/model.joblib ./model.joblib
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
