@@ -102,7 +102,7 @@ TraffiSense-AI/
 cd backend
 python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
+pip install -r requirements.txt -r requirements-train.txt
 python ml_model.py            # trains the model (writes to ../ml/model.joblib)
 cp ../ml/model.joblib .        # main.py loads it from the backend/ working directory
 uvicorn main:app --reload --port 8000
