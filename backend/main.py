@@ -21,16 +21,20 @@ load_dotenv()
 
 app = FastAPI(title="Traffic Intelligence Engine API — TraffiSense AI")
 
-# Replace https://traffisense-ai.vercel.app with your actual production
-# Vercel domain. The regex below additionally allows any *.vercel.app
-# preview-deployment URL (e.g. traffisense-ai-git-feature-you.vercel.app).
+# Trusted frontend origins, restricted via allowlist (no wildcard matching).
+# Configure with the ALLOWED_ORIGINS env var — a comma-separated list, e.g.:
+#   ALLOWED_ORIGINS=https://traffisense-ai.vercel.app,http://localhost:5173
+# Falls back to local dev + the production Vercel domain if unset.
+_default_origins = "http://localhost:5173,https://traffisense-ai.vercel.app"
+ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("ALLOWED_ORIGINS", _default_origins).split(",")
+    if origin.strip()
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "https://traffisense-ai.vercel.app",
-    ],
-    allow_origin_regex=r"https://.*\.vercel\.app",
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
