@@ -18,6 +18,13 @@ services:
         fromDatabase:
           name: traffisense-db
           property: connectionString
+      # Routing service (issue #43): defaults to the public OSRM demo server
+      # if unset, which is fine for evaluation but not recommended for real
+      # production traffic. Self-host OSRM (see docker-compose.osrm.yml) or
+      # use a managed OSRM-compatible provider, then uncomment and point
+      # this at it, e.g.:
+      # - key: OSRM_BASE_URL
+      #   value: https://osrm.your-domain.com
 
 databases:
   - name: traffisense-db

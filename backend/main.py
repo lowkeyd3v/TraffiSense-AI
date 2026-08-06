@@ -10,12 +10,12 @@ import numpy as np
 from datetime import datetime
 from collections import Counter, defaultdict
 from typing import Optional
-import requests
 import os
 from dotenv import load_dotenv
 
 from fuzzy_engine import compute_resources, compute_severity_score, score_to_level
 from data_pipeline import load_full_data
+from routing import get_real_diversion_route
 
 load_dotenv()
 
@@ -159,32 +159,12 @@ class PredictionResponse(BaseModel):
     response_priority_level: str = "Low"    # Low / Medium / High / Critical
 
 
-# ── OSRM routing helper ───────────────────────────────────────────────────────
-def get_real_diversion_route(lat: float, lng: float) -> list[dict]:
-    lat_a, lng_a = lat - 0.003, lng - 0.003
-    lat_b, lng_b = lat + 0.003, lng + 0.003
-    lat_c, lng_c = lat + 0.002, lng - 0.002
-
-    # Public free OSRM routing
-    osrm_url = f"http://router.project-osrm.org/route/v1/driving/{lng_a},{lat_a};{lng_c},{lat_c};{lng_b},{lat_b}?overview=full&geometries=geojson"
-    try:
-        response = requests.get(osrm_url, timeout=3.0)
-        if response.status_code == 200:
-            data = response.json()
-            if "routes" in data and len(data["routes"]) > 0:
-                coords = data["routes"][0]["geometry"]["coordinates"]
-                return [{"lat": c[1], "lng": c[0]} for c in coords]
-    except Exception as e:
-        print("OSRM routing failed, using fallback route simulation:", e)
-    
-    # Fallback simulation
-    off = 0.003
-    return [
-        {"lat": lat - off, "lng": lng - off},
-        {"lat": lat + off/2, "lng": lng - off},
-        {"lat": lat + off, "lng": lng + off/2},
-        {"lat": lat + off, "lng": lng + off},
-    ]
+# ── Routing ───────────────────────────────────────────────────────────────────
+# get_real_diversion_route() now lives in routing.py: it talks to a
+# configurable OSRM-compatible service (OSRM_BASE_URL env var), retries
+# transient failures, caches recent results, and falls back to a simulated
+# route if the routing service is unavailable. See README "Routing Service"
+# section and routing.py for details. (Fixes #43.)
 
 
 @app.post("/api/predict", response_model=PredictionResponse)
