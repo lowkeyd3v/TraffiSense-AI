@@ -105,7 +105,7 @@ python -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt -r requirements_train.txt
 python ml_model.py            # trains the model (writes to ../ml/model.joblib)
-cp ../ml/model.joblib .        # main.py loads it from the backend/ working directory
+cp ../ml/model.joblib .       # main.py loads it from the backend/ working directory
 uvicorn main:app --reload --port 8000
 ```
 The API will be live at `http://127.0.0.1:8000`, with interactive docs at `/docs`.
@@ -161,7 +161,7 @@ for the Bengaluru/Karnataka region used by the sample dataset:
 docker compose -f docker-compose.osrm.yml up -d
 ```
 
-This downloads the Karnataka OSM extract, pre-processes it (`osrm-extract` +
+This downloads the Karnataka OSM extract, pre-processes it (osrm-extract +
 `osrm-partition` + `osrm-customize`, using the MLD routing algorithm), and serves it on
 `http://localhost:5000`. Point the backend at it with:
 

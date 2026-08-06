@@ -2,22 +2,28 @@ services:
   - type: web
     name: traffisense-backend
     runtime: python
-    plan: free              # bump to starter+ if you add a persistent disk instead of Postgres
+    plan: free
     rootDir: backend
+
     buildCommand: >
       pip install -r requirements.txt -r requirements_train.txt &&
       python ml_model.py &&
       cp ../ml/model.joblib ./model.joblib
+
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+
       - key: ALLOWED_ORIGINS
         value: https://traffisense-ai.vercel.app
+
       - key: DATABASE_URL
         fromDatabase:
           name: traffisense-db
           property: connectionString
+
       # Routing service (issue #43): defaults to the public OSRM demo server
       # if unset, which is fine for evaluation but not recommended for real
       # production traffic. Self-host OSRM (see docker-compose.osrm.yml) or
@@ -28,6 +34,6 @@ services:
 
 databases:
   - name: traffisense-db
-    plan: free               # Render free Postgres expires after 90 days — see note below
+    plan: free
     databaseName: traffisense
     user: traffisense
