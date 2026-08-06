@@ -13,5 +13,3 @@ requests
 python-dotenv
 packaging
 networkx
-matplotlib
-pytest

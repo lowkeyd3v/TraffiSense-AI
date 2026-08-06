@@ -1,0 +1,54 @@
+# Self-hosted OSRM routing service for TraffiSense AI (issue #43).
+#
+# Replaces the public OSRM demo server (router.project-osrm.org) — which is
+# explicitly not for production use — with a dedicated instance you control.
+#
+# Usage:
+#   docker compose -f docker-compose.osrm.yml up -d
+#
+# Then point the backend at it:
+#   export OSRM_BASE_URL=http://localhost:5000
+#
+# Defaults to a Karnataka extract (covers Bengaluru, the region the sample
+# dataset is drawn from). Swap OSM_URL for another region's Geofabrik
+# extract (https://download.geofabrik.de/) as needed.
+#
+# The "prepare" service only needs to run once (or whenever the data
+# changes) — it downloads and pre-processes the map data into ./osrm-data,
+# which "osrm-routed" then serves. Re-run `docker compose -f
+# docker-compose.osrm.yml up prepare` to refresh the extract.
+
+services:
+  prepare:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    volumes:
+      - ./osrm-data:/data
+    entrypoint: /bin/bash
+    command:
+      - -c
+      - |
+        set -e
+        cd /data
+        if [ ! -f karnataka-latest.osm.pbf ]; then
+          echo "Downloading Karnataka OSM extract..."
+          apt-get update -qq && apt-get install -y -qq wget > /dev/null
+          wget -q https://download.geofabrik.de/asia/india/karnataka-latest.osm.pbf
+        fi
+        if [ ! -f karnataka-latest.osrm ]; then
+          osrm-extract -p /opt/car.lua karnataka-latest.osm.pbf
+          osrm-partition karnataka-latest.osrm
+          osrm-customize karnataka-latest.osrm
+        fi
+        echo "OSRM data ready."
+
+  osrm-routed:
+    image: ghcr.io/project-osrm/osrm-backend:latest
+    depends_on:
+      prepare:
+        condition: service_completed_successfully
+    volumes:
+      - ./osrm-data:/data
+    ports:
+      - "5000:5000"
+    command: osrm-routed --algorithm mld /data/karnataka-latest.osrm
+    restart: unless-stopped

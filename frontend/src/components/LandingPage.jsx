@@ -39,7 +39,7 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
               </h3>
 
               <p className="text-gray-500 font-medium text-sm mb-4">
-                Mumbai Monsoon Zone / Bengaluru Underpass
+                Tumkur Road Corridor, Bengaluru
               </p>
 
               <ul className="text-xs text-gray-600 space-y-2 font-medium">
@@ -82,7 +82,7 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
               </h3>
 
               <p className="text-gray-500 font-medium text-sm mb-4">
-                Delhi–Mumbai Expressway / Bengaluru Ring Road
+                ORR East, Bengaluru Ring Road
               </p>
 
               <ul className="text-xs text-gray-600 space-y-2 font-medium">
@@ -125,7 +125,7 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
               </h3>
 
               <p className="text-gray-500 font-medium text-sm mb-4">
-                Delhi Central Roads / Airport Corridors
+                Hosur Road / Bengaluru Airport Corridor
               </p>
 
               <ul className="text-xs text-gray-600 space-y-2 font-medium">
