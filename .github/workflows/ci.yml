@@ -27,7 +27,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -r backend/requirements-train.txt
+          python -m pip install -r backend/requirements_train.txt
 
       - name: Verify dependencies
         run: |

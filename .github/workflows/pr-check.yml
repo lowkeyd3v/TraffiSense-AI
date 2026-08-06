@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -r requirements-train.txt
+          python -m pip install -r requirements_train.txt
 
       - name: Verify installation
         run: |
