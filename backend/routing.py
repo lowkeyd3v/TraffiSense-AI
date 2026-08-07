@@ -126,24 +126,6 @@ def _cache_key(lat: float, lng: float) -> str:
     return f"{round(lat, p)}:{round(lng, p)}"
 
 
-def _redact_url(url: str) -> str:
-    """Strip query string and credentials before a URL ever hits the logs.
-
-    OSRM_BASE_URL is operator-configurable and, for hosted/paid providers,
-    commonly embeds an API key either in the query string (?key=...) or as
-    userinfo (https://user:key@host/...). Logging the raw URL would leak
-    that secret in plain text (CodeQL: clear-text logging of sensitive
-    information). We only ever need the path for debugging.
-    """
-    try:
-        from urllib.parse import urlsplit
-
-        parts = urlsplit(url)
-        return f"{parts.scheme}://{parts.hostname}{parts.path}"
-    except Exception:
-        return "<redacted>"
-
-
 # ══════════════════════════════════════════════════════════════════════════
 # Routing
 # ══════════════════════════════════════════════════════════════════════════
@@ -184,17 +166,26 @@ def _request_route_from_osrm(lat_a, lng_a, lat_c, lng_c, lat_b, lng_b) -> Option
             if response.status_code < 500:
                 # Client-side error (bad request, rate limited, etc.) —
                 # retrying the same request won't help.
+                #
+                # Deliberately do NOT include `url` (or anything derived
+                # from it) here. OSRM_BASE_URL is operator-configurable and
+                # a hosted/paid routing provider could embed an API key in
+                # it (query string or userinfo). CodeQL's clear-text-logging
+                # check treats *any* value derived from that source as
+                # tainted no matter how it's transformed, so the only
+                # reliable fix is to keep url out of every log line
+                # entirely rather than try to "sanitize" it.
                 print(
                     f"Routing service returned {response.status_code}, "
-                    f"not retrying: {_redact_url(url)}"
+                    f"not retrying (profile={OSRM_PROFILE})"
                 )
                 return None
             last_error = f"HTTP {response.status_code}"
         except requests.RequestException:
-            # Don't stringify the exception itself: requests embeds the
-            # full request URL (and thus any query-string API key) in its
-            # exception messages, so str(e) is just as sensitive as url.
-            last_error = f"request error contacting {_redact_url(url)}"
+            # Don't stringify the exception either: requests embeds the
+            # full request URL (and thus any embedded API key) in its
+            # exception messages.
+            last_error = "network error contacting routing service"
 
         if attempt < OSRM_MAX_RETRIES:
             time.sleep(OSRM_RETRY_BACKOFF_SECONDS * (2 ** attempt))
