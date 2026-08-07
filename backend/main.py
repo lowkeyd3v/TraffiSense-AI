@@ -889,25 +889,29 @@ if os.path.exists("static"):
     STATIC_ROOT = Path("static").resolve()
     STATIC_INDEX = STATIC_ROOT / "index.html"
 
+    # Build an allowlist of every real file under static/ once at startup.
+    # The request path (full_path) is attacker-controlled, so the fix here
+    # isn't to "validate" it and then still hand it to the filesystem —
+    # it's to never let it touch a filesystem path at all. Below, full_path
+    # is only ever used as a dict lookup key against files we already know
+    # exist; if it's not an exact match for a real static asset, we always
+    # serve the fixed index.html path. There is no code path where request
+    # data is concatenated, joined, or resolved into a filesystem path, so
+    # traversal (e.g. "../../etc/passwd", encoded variants, symlinks) has
+    # no route to a sink at all.
+    _STATIC_FILES = {
+        str(p.relative_to(STATIC_ROOT)).replace(os.sep, "/"): p
+        for p in STATIC_ROOT.rglob("*")
+        if p.is_file()
+    }
+
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404, detail="API route not found")
 
-        # full_path is attacker-controlled (it's the raw request path), so
-        # it must never reach the filesystem unvalidated. Resolving it and
-        # then requiring it be relative_to() STATIC_ROOT is the standard
-        # guard against path traversal: any attempt to escape the static
-        # directory (e.g. "../../etc/passwd", encoded variants, symlink
-        # tricks) makes relative_to() raise ValueError instead of ever
-        # constructing a usable out-of-bounds path.
-        try:
-            candidate = (STATIC_ROOT / full_path).resolve()
-            candidate.relative_to(STATIC_ROOT)
-        except ValueError:
-            return FileResponse(STATIC_INDEX)
-
-        if candidate.is_file():
-            return FileResponse(candidate)
+        matched_file = _STATIC_FILES.get(full_path)
+        if matched_file is not None:
+            return FileResponse(matched_file)
 
         return FileResponse(STATIC_INDEX)
