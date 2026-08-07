@@ -883,14 +883,27 @@ import os
 
 if os.path.exists("static"):
     app.mount("/assets", StaticFiles(directory="static/assets"), name="assets")
-    
+
+    STATIC_ROOT = os.path.realpath("static")
+
     @app.get("/{full_path:path}")
     async def serve_frontend(full_path: str):
         if full_path.startswith("api/"):
             raise HTTPException(status_code=404, detail="API route not found")
-        
-        file_path = os.path.join("static", full_path)
-        if os.path.isfile(file_path):
-            return FileResponse(file_path)
-            
-        return FileResponse("static/index.html")
+
+        # full_path comes straight from the request URL, so it's untrusted
+        # input. Resolve it to an absolute, symlink-free path and verify it
+        # is still inside STATIC_ROOT before serving it — otherwise a
+        # request like "/../../etc/passwd" (or an encoded/traversal
+        # variant) could read arbitrary files off the server
+        # (CodeQL: uncontrolled data used in path expression).
+        candidate = os.path.realpath(os.path.join(STATIC_ROOT, full_path))
+        is_inside_static = (
+            candidate == STATIC_ROOT
+            or candidate.startswith(STATIC_ROOT + os.sep)
+        )
+
+        if is_inside_static and os.path.isfile(candidate):
+            return FileResponse(candidate)
+
+        return FileResponse(os.path.join(STATIC_ROOT, "index.html"))
