@@ -119,6 +119,18 @@ comma-separated list before starting the server, e.g.:
 export ALLOWED_ORIGINS="https://traffisense-ai.vercel.app,https://your-preview-url.vercel.app"
 ```
 
+#### Dependency management
+`backend/requirements.txt` and `backend/requirements_train.txt` pin every package to an exact, tested
+version so that local development, CI, and production all install identical dependencies. When you need
+to add or upgrade a package:
+1. Update the version pin in the relevant `requirements*.txt` file.
+2. Install into a clean virtual environment (`pip install -r requirements.txt -r requirements_train.txt`)
+   and confirm the app boots (`uvicorn main:app`) and the test suite passes (`pytest`).
+3. Commit the updated requirements file(s) alongside the code changes that depend on the new version.
+
+Avoid unpinned entries (e.g. `fastapi` instead of `fastapi==0.141.1`) — an unpinned package can resolve
+to a different, potentially breaking version on every fresh install.
+
 ### Frontend
 ```bash
 cd frontend
