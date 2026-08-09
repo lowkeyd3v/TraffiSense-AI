@@ -7,9 +7,23 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 import joblib
 import os
+import shutil
+import tempfile
+from datetime import datetime
 import matplotlib.pyplot as plt
 
 from data_pipeline import load_and_clean_data
+
+FEATURE_COLUMNS = [
+    'latitude', 'longitude',
+    'hour_of_day', 'day_of_week', 'is_weekend',
+    'event_cause', 'veh_type', 'corridor', 'corridor_priority',
+    'requires_road_closure', 'event_type', 'police_station',
+    'has_severity_keyword', 'resolution_time_minutes'
+]
+
+_SEVERITY_KEYWORDS = ['severe', 'fatal', 'fire', 'water', 'heavy', 'blast', 'accident', 'dead', 'injur']
+_PRIORITY_MAP = {'Low': 1, 'Medium': 2, 'High': 3}
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
 
@@ -104,6 +118,93 @@ MODEL_PATH = os.path.join(
     ML_OUTPUT_PATH,
     "model.joblib"
 )
+
+def _feedback_rows_to_dataframe(feedback_rows: list[dict]) -> pd.DataFrame:
+    """
+    Converts resolved-deployment rows straight from the database into the
+    same feature schema produced by data_pipeline.load_and_clean_data(), so
+    they can be concatenated onto the base dataset for training. No file I/O
+    happens here — this is the in-memory replacement for appending rows to
+    dataset.csv.
+    """
+    records = []
+    for row in feedback_rows:
+        try:
+            dt = datetime.fromisoformat(str(row.get('time', '')).replace("Z", "+00:00"))
+        except (ValueError, TypeError):
+            dt = datetime.now()
+
+        duration = row.get('actual_duration')
+        if duration is None or duration <= 0 or duration >= 1440:
+            continue  # same sanity bounds load_and_clean_data applies
+
+        description = (row.get('description') or '').lower()
+        priority = row.get('priority') or 'Low'
+
+        records.append({
+            'latitude': row.get('latitude', 0.0),
+            'longitude': row.get('longitude', 0.0),
+            'hour_of_day': dt.hour,
+            'day_of_week': dt.weekday(),
+            'is_weekend': 1 if dt.weekday() in (5, 6) else 0,
+            'event_cause': row.get('event_cause') or 'unknown',
+            'veh_type': row.get('veh_type') or 'unknown',
+            'corridor': row.get('corridor') or 'Non-corridor',
+            'corridor_priority': _PRIORITY_MAP.get(priority, 1),
+            'requires_road_closure': int(bool(row.get('requires_road_closure'))),
+            'event_type': row.get('event_type') or 'unknown',
+            'police_station': row.get('police_station') or 'unknown',
+            'has_severity_keyword': 1 if any(kw in description for kw in _SEVERITY_KEYWORDS) else 0,
+            'resolution_time_minutes': float(duration),
+        })
+
+    if not records:
+        return pd.DataFrame(columns=FEATURE_COLUMNS)
+    return pd.DataFrame.from_records(records)[FEATURE_COLUMNS]
+
+
+def build_training_dataframe(data_path: str = DATA_PATH, feedback_rows: list[dict] | None = None) -> pd.DataFrame:
+    """
+    Combines the base historical dataset with any resolved-deployment
+    feedback pulled from the database (issue #41: feedback now lives in
+    Postgres/SQLite, not dataset.csv, so it survives redeploys and there's
+    no concurrent-write race on a shared CSV file).
+    """
+    base_df = load_and_clean_data(data_path)
+    if feedback_rows:
+        feedback_df = _feedback_rows_to_dataframe(feedback_rows)
+        if not feedback_df.empty:
+            base_df = pd.concat([base_df, feedback_df], ignore_index=True)
+    return base_df
+
+
+def _build_pipeline() -> Pipeline:
+    categorical_features = [
+        'event_cause', 'veh_type', 'corridor', 'event_type', 'police_station'
+    ]
+    numerical_features = [
+        'latitude', 'longitude', 'hour_of_day', 'day_of_week', 'is_weekend',
+        'corridor_priority', 'requires_road_closure', 'has_severity_keyword'
+    ]
+    preprocessor = ColumnTransformer(transformers=[
+        ('num', StandardScaler(), numerical_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features),
+    ])
+    model = GradientBoostingRegressor(
+        n_estimators=300, learning_rate=0.05, max_depth=5,
+        subsample=0.8, random_state=42,
+    )
+    return Pipeline(steps=[('preprocessor', preprocessor), ('model', model)])
+
+
+def evaluate_model(clf, X_test: pd.DataFrame, y_test: pd.Series) -> tuple[float, float]:
+    """Returns (MAE, R²) for a fitted pipeline on a held-out test set."""
+    y_pred = clf.predict(X_test)
+    return (
+        float(mean_absolute_error(y_test, y_pred)),
+        float(r2_score(y_test, y_pred)),
+    )
+
 
 def train_and_save_model(
     data_path: str = DATA_PATH,
@@ -228,129 +329,119 @@ def train_and_save_model(
 
 
 
-def retrain_with_feedback(
-    feedback_row: dict,
+def rollback_model(model_path: str = 'model.joblib') -> bool:
+    """
+    Restores the previous production model from its backup. Used when a
+    promoted model turns out to be bad in practice and needs to be undone
+    without a redeploy.
+    """
+    backup_path = model_path + '.previous'
+    if not os.path.exists(backup_path):
+        print(f"No backup found at {backup_path}; cannot roll back.")
+        return False
+    shutil.copyfile(backup_path, model_path)
+    print(f"Rolled back {model_path} from {backup_path}.")
+    return True
+
+
+def run_validated_retraining(
+    feedback_rows: list[dict],
     data_path: str = DATA_PATH,
-    model_save_path: str = 'model.joblib'
-):
-
+    model_save_path: str = 'model.joblib',
+    mae_tolerance: float = 0.05,   # candidate may be up to 5% worse on MAE...
+    r2_tolerance: float = 0.02,    # ...and up to 0.02 worse on R², and still promote
+) -> dict:
     """
-    Appends a resolved deployment row to dataset.csv
-    and retrains the model.
+    Retrains a candidate model from the base dataset plus DB-backed feedback,
+    evaluates it against the currently-deployed model on a shared held-out
+    test split, and only promotes it if it isn't meaningfully worse.
+
+    This never touches dataset.csv — training data is assembled entirely in
+    memory from the base CSV (static, read-only) and feedback fetched from
+    the database — so there's no concurrent-write race and nothing is lost
+    on ephemeral storage. Returns a dict describing what happened, suitable
+    for storing on a retrain_jobs row.
     """
-
-    print(
-        f"Online retraining triggered with feedback_row: {feedback_row}"
-    )
-
-
-    try:
-        from datetime import datetime, timedelta
-
-        start_dt = datetime.fromisoformat(
-            feedback_row['time'].replace("Z", "+00:00")
-        )
-
-        duration_mins = float(
-            feedback_row['actual_duration']
-        )
-
-        closed_dt = start_dt + timedelta(
-            minutes=duration_mins
-        )
-
-        start_str = start_dt.strftime(
-            '%Y-%m-%d %H:%M:%S+00:00'
-        )
-
-        closed_str = closed_dt.strftime(
-            '%Y-%m-%d %H:%M:%S+00:00'
-        )
-
-    except Exception as e:
-
-        print(
-            "Error parsing datetime:",
-            e
-        )
-
-        start_str = datetime.utcnow().strftime(
-            '%Y-%m-%d %H:%M:%S+00:00'
-        )
-
-        closed_str = start_str
-
-
-
-    new_csv_row = {
-        'start_datetime': start_str,
-        'closed_datetime': closed_str,
-        'event_cause': feedback_row.get('event_cause', 'unknown'),
-        'veh_type': feedback_row.get('veh_type', 'unknown'),
-        'corridor': feedback_row.get('corridor', 'Non-corridor'),
-        'priority': feedback_row.get('priority', 'Low'),
-        'requires_road_closure': 'True' if feedback_row.get('requires_road_closure') else 'False',
-        'event_type': feedback_row.get('event_type', 'unknown'),
-        'latitude': feedback_row.get('latitude', 0.0),
-        'longitude': feedback_row.get('longitude', 0.0),
-        'police_station': feedback_row.get('police_station', 'unknown'),
-        'description': feedback_row.get('description', ''),
-        'zone': 'unknown',
-        'junction': 'unknown',
-        'endlatitude': feedback_row.get('latitude', 0.0),
-        'endlongitude': feedback_row.get('longitude', 0.0)
+    result = {
+        "status": "failed",
+        "message": "",
+        "baseline_mae": None, "baseline_r2": None,
+        "candidate_mae": None, "candidate_r2": None,
+        "promoted": False,
     }
 
-
     try:
+        df = build_training_dataframe(data_path=data_path, feedback_rows=feedback_rows)
+        X = df.drop(columns=['resolution_time_minutes'])
+        y = df['resolution_time_minutes']
 
-        new_df = pd.DataFrame(
-            [new_csv_row]
+        # Fixed random_state -> baseline and candidate are compared on the
+        # exact same held-out rows.
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=0.2, random_state=42
         )
 
-        new_df.to_csv(
-            data_path,
-            mode='a',
-            header=False,
-            index=False
+        candidate = _build_pipeline()
+        candidate.fit(X_train, y_train)
+        candidate_mae, candidate_r2 = evaluate_model(candidate, X_test, y_test)
+        result["candidate_mae"], result["candidate_r2"] = candidate_mae, candidate_r2
+        print(f"Candidate model — MAE: {candidate_mae:.2f} | R²: {candidate_r2:.3f}")
+
+        baseline_mae, baseline_r2 = None, None
+        if os.path.exists(model_save_path):
+            try:
+                current = joblib.load(model_save_path)
+                baseline_mae, baseline_r2 = evaluate_model(current, X_test, y_test)
+                result["baseline_mae"], result["baseline_r2"] = baseline_mae, baseline_r2
+                print(f"Current model  — MAE: {baseline_mae:.2f} | R²: {baseline_r2:.3f}")
+            except Exception as e:
+                print("Could not evaluate current production model (treating as no baseline):", e)
+
+        should_promote = (
+            baseline_mae is None
+            or (
+                candidate_mae <= baseline_mae * (1 + mae_tolerance)
+                and candidate_r2 >= baseline_r2 - r2_tolerance
+            )
         )
 
-        print(
-            "Successfully appended feedback row"
-        )
+        if not should_promote:
+            result["status"] = "rejected"
+            result["message"] = (
+                f"Candidate did not beat current model within tolerance "
+                f"(MAE {candidate_mae:.2f} vs {baseline_mae:.2f}, "
+                f"R² {candidate_r2:.3f} vs {baseline_r2:.3f}); keeping existing model."
+            )
+            print(result["message"])
+            return result
 
+        # Promote atomically: write to a temp file in the same directory,
+        # back up the current model, then os.replace() the live file. This
+        # avoids anyone (including another request handler reading the
+        # model to serve a prediction) ever seeing a partially-written file.
+        target_dir = os.path.dirname(os.path.abspath(model_save_path)) or "."
+        fd, tmp_path = tempfile.mkstemp(dir=target_dir, suffix=".joblib.tmp")
+        os.close(fd)
+        try:
+            joblib.dump(candidate, tmp_path)
+            if os.path.exists(model_save_path):
+                shutil.copyfile(model_save_path, model_save_path + '.previous')
+            os.replace(tmp_path, model_save_path)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+        result["status"] = "promoted"
+        result["promoted"] = True
+        result["message"] = "New model promoted to production."
+        print(result["message"])
+        return result
 
     except Exception as e:
-
-        print(
-            "Failed to append:",
-            e
-        )
-
-
-    try:
-
-        train_and_save_model(
-            data_path=data_path,
-            model_save_path=model_save_path
-        )
-
-        print(
-            "Online retraining completed successfully."
-        )
-
-        return True
-
-
-    except Exception as e:
-
-        print(
-            "Retraining failed:",
-            e
-        )
-
-        return False
-
+        result["status"] = "failed"
+        result["message"] = f"Retraining failed: {e}"
+        print(result["message"])
+        return result
 
 
 if __name__ == "__main__":

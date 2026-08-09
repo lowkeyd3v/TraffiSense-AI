@@ -1,14 +1,16 @@
-from fastapi import FastAPI, Query
+from fastapi import FastAPI, Query, BackgroundTasks, Request, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import re
+import threading
+import time
 from pydantic import BaseModel, field_validator
 import joblib
 import pandas as pd
 import numpy as np
 from datetime import datetime
-from collections import Counter, defaultdict
+from collections import Counter, defaultdict, deque
 from typing import Optional
 import os
 from dotenv import load_dotenv
@@ -54,7 +56,16 @@ print("Loading analytics dataset...")
 _df = load_full_data()
 print(f"Analytics dataset: {len(_df)} rows loaded")
 
-from db import init_db, add_deployment, get_deployments, resolve_deployment
+from db import (
+    init_db, add_deployment, get_deployments, resolve_deployment,
+    get_deployment, get_resolved_feedback,
+    create_retrain_job, update_retrain_job, get_retrain_job, list_retrain_jobs,
+    try_acquire_training_lock, release_training_lock,
+)
+
+# Guards the model_pipeline global against a torn read while a background
+# retraining job hot-swaps it out from under an in-flight /api/predict call.
+_model_lock = threading.Lock()
 try:
     init_db()
     print("Database initialized successfully.")
@@ -200,9 +211,12 @@ def predict_resources(request: IncidentRequest):
         'has_severity_keyword': has_severity_keyword,
     }])
 
-    if model_pipeline:
+    with _model_lock:
+        active_pipeline = model_pipeline
+
+    if active_pipeline:
         try:
-            predicted_duration = float(model_pipeline.predict(input_data)[0])
+            predicted_duration = float(active_pipeline.predict(input_data)[0])
         except Exception as e:
             print("Predict error:", e)
             predicted_duration = _CAUSE_AVG_DURATION.get(request.event_cause, 60.0)
@@ -583,25 +597,160 @@ def create_deployment(req: DeploymentRequest):
 def list_deployments(status: Optional[str] = None):
     return get_deployments(status)
 
+# ── Auth + rate limiting for the resolve/retrain endpoint (issue #41) ───────
+# Retraining is the expensive, model-mutating operation here, so it's the one
+# that needs protecting — not the read-only GET endpoints above.
+#
+# Auth: set RESOLVE_API_KEY in the environment to require callers to send a
+# matching `X-API-Key` header. Left unset, the endpoint stays open (same as
+# before) so local dev / the public demo keep working without extra setup —
+# but production deployments should set this.
+RESOLVE_API_KEY = os.getenv("RESOLVE_API_KEY", "").strip()
+
+# Rate limiting: a simple in-memory fixed-window limiter keyed by client IP.
+# This is intentionally dependency-free and good enough for a single-process
+# deployment; if this API ever runs behind multiple worker processes/hosts,
+# swap this for a shared store (e.g. Redis) so limits are enforced globally.
+_RATE_LIMIT_MAX_REQUESTS = int(os.getenv("RESOLVE_RATE_LIMIT_MAX", "5"))
+_RATE_LIMIT_WINDOW_SECONDS = int(os.getenv("RESOLVE_RATE_LIMIT_WINDOW", "60"))
+_rate_limit_hits: dict[str, deque] = defaultdict(deque)
+_rate_limit_lock = threading.Lock()
+
+
+def _check_rate_limit(client_key: str) -> bool:
+    """Returns True if the caller is within their rate limit."""
+    now = time.monotonic()
+    with _rate_limit_lock:
+        hits = _rate_limit_hits[client_key]
+        while hits and now - hits[0] > _RATE_LIMIT_WINDOW_SECONDS:
+            hits.popleft()
+        if len(hits) >= _RATE_LIMIT_MAX_REQUESTS:
+            return False
+        hits.append(now)
+        return True
+
+
+def _verify_resolve_auth(x_api_key: Optional[str]) -> None:
+    if RESOLVE_API_KEY and x_api_key != RESOLVE_API_KEY:
+        raise HTTPException(status_code=401, detail="Invalid or missing API key.")
+
+
+def _run_retraining_job(job_id: int, deployment_id: int):
+    """
+    Runs on a background thread after the HTTP response has already been
+    sent (FastAPI/Starlette executes sync BackgroundTasks in a threadpool),
+    so /resolve never blocks on training. Only one of these can be running
+    at a time — see try_acquire_training_lock.
+    """
+    from ml_model import run_validated_retraining  # local import: keeps sklearn/matplotlib off the hot request path
+
+    if not try_acquire_training_lock(job_id):
+        update_retrain_job(
+            job_id,
+            status="skipped",
+            message="Another retraining job is already in progress; this feedback will be included next run.",
+            finished_at=datetime.utcnow(),
+        )
+        print(f"Retrain job {job_id}: skipped, training already in progress.")
+        return
+
+    update_retrain_job(job_id, status="running", started_at=datetime.utcnow())
+    try:
+        feedback_rows = get_resolved_feedback()
+        outcome = run_validated_retraining(feedback_rows=feedback_rows, model_save_path=MODEL_PATH)
+
+        update_retrain_job(
+            job_id,
+            status=outcome["status"],
+            message=outcome["message"],
+            baseline_mae=outcome["baseline_mae"],
+            baseline_r2=outcome["baseline_r2"],
+            candidate_mae=outcome["candidate_mae"],
+            candidate_r2=outcome["candidate_r2"],
+            promoted=outcome["promoted"],
+            finished_at=datetime.utcnow(),
+        )
+
+        if outcome["promoted"]:
+            # Hot-reload the newly promoted model behind the same lock the
+            # predict endpoint reads through, so no request sees a half
+            # swapped-in pipeline.
+            global model_pipeline
+            new_pipeline = joblib.load(MODEL_PATH)
+            with _model_lock:
+                model_pipeline = new_pipeline
+            print(f"Retrain job {job_id}: model hot-reloaded after promotion.")
+        else:
+            print(f"Retrain job {job_id}: {outcome['status']} — {outcome['message']}")
+    except Exception as e:
+        update_retrain_job(job_id, status="failed", message=str(e), finished_at=datetime.utcnow())
+        print(f"Retrain job {job_id}: failed —", e)
+    finally:
+        release_training_lock()
+
+
 @app.post("/api/deployments/{deployment_id}/resolve")
-def resolve_existing_deployment(deployment_id: int, feedback: DeploymentFeedback):
+def resolve_existing_deployment(
+    deployment_id: int,
+    feedback: DeploymentFeedback,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    x_api_key: Optional[str] = Header(default=None),
+):
+    _verify_resolve_auth(x_api_key)
+
+    client_key = x_api_key or (request.client.host if request.client else "unknown")
+    if not _check_rate_limit(client_key):
+        raise HTTPException(
+            status_code=429,
+            detail=f"Too many resolve requests; limit is {_RATE_LIMIT_MAX_REQUESTS} per {_RATE_LIMIT_WINDOW_SECONDS}s.",
+        )
+
+    existing = get_deployment(deployment_id)
+    if not existing:
+        return {"status": "error", "message": "Deployment not found"}
+    if existing.get("status") == "resolved":
+        # Already resolved — reject instead of re-triggering another
+        # (redundant, expensive) retraining job for the same feedback.
+        raise HTTPException(status_code=409, detail="Deployment has already been resolved.")
+
     res = resolve_deployment(deployment_id, feedback.dict())
     if not res:
         return {"status": "error", "message": "Deployment not found"}
-    
-    # Trigger model retraining in background / synchronously for immediate update
-    try:
-        from ml_model import retrain_with_feedback
-        retrained = retrain_with_feedback(res)
-        if retrained:
-            # Hot-reload the model pipeline
-            global model_pipeline
-            model_pipeline = joblib.load(MODEL_PATH)
-            print("Model hot-reloaded successfully after retraining.")
-    except Exception as e:
-        print("Failed to retrain or hot-reload model:", e)
-        
-    return {"status": "success", "deployment": res}
+
+    job_id = create_retrain_job(deployment_id)
+    background_tasks.add_task(_run_retraining_job, job_id, deployment_id)
+
+    return {"status": "success", "deployment": res, "retrain_job_id": job_id}
+
+
+@app.get("/api/retrain-jobs")
+def list_retrain_jobs_endpoint(limit: int = 20):
+    return {"jobs": list_retrain_jobs(limit=limit)}
+
+
+@app.get("/api/retrain-jobs/{job_id}")
+def get_retrain_job_endpoint(job_id: int):
+    job = get_retrain_job(job_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Retrain job not found")
+    return job
+
+
+@app.post("/api/model/rollback")
+def rollback_model_endpoint(x_api_key: Optional[str] = Header(default=None)):
+    """Restores the previous production model from its backup (Fixes #41: rollback support)."""
+    _verify_resolve_auth(x_api_key)
+    from ml_model import rollback_model
+
+    if not rollback_model(model_path=MODEL_PATH):
+        raise HTTPException(status_code=404, detail="No previous model backup available to roll back to.")
+
+    global model_pipeline
+    new_pipeline = joblib.load(MODEL_PATH)
+    with _model_lock:
+        model_pipeline = new_pipeline
+    return {"status": "success", "message": "Rolled back to previous model."}
 
 @app.get("/api/analytics/summary")
 def analytics_summary(

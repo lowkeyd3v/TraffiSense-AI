@@ -32,6 +32,22 @@ services:
       # - key: OSRM_BASE_URL
       #   value: https://osrm.your-domain.com
 
+      # Retraining endpoint protection (issue #41): requires callers to send
+      # a matching `X-API-Key` header on POST /api/deployments/{id}/resolve
+      # and POST /api/model/rollback. Generate a strong random value here —
+      # Render can auto-generate one if you set `generateValue: true` instead
+      # of `value:` in the dashboard. Leaving this unset leaves the endpoint
+      # open (fine for local dev, not for production).
+      # - key: RESOLVE_API_KEY
+      #   value: replace-with-a-strong-random-secret
+
+      # Optional: override the default resolve-endpoint rate limit
+      # (5 requests / 60s per caller).
+      # - key: RESOLVE_RATE_LIMIT_MAX
+      #   value: "5"
+      # - key: RESOLVE_RATE_LIMIT_WINDOW
+      #   value: "60"
+
 databases:
   - name: traffisense-db
     plan: free
