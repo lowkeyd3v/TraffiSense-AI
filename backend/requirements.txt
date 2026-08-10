@@ -4,7 +4,7 @@ sqlalchemy==2.0.51
 psycopg2-binary==2.9.12
 pandas==3.0.5
 numpy==2.4.6
-scipy==1.17.1
+scipy==1.18.0
 scikit-learn==1.9.0
 scikit-fuzzy==0.5.0
 joblib==1.5.3
