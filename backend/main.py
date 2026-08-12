@@ -106,6 +106,11 @@ def _precompute():
 
 _precompute()
 
+# ── Health check ──────────────────────────────────────────────────────────────
+@app.get("/")
+def root():
+    return {"status": "ok", "service": "TraffiSense AI backend"}
+
 
 # ══════════════════════════════════════════════════════════════════════════════
 # REQUEST / RESPONSE MODELS
