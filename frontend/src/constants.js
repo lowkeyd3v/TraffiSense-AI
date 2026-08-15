@@ -21,6 +21,36 @@ export const CORRIDORS = [
   'ORR North 1','ORR North 2','Old Madras Road'
 ]
 
+// Backend-supported Bengaluru geographic bounds. Keep frontend defaults and
+// scenario locations inside this region so predictions and analytics use
+// data compatible with the Bengaluru-trained model.
+export const BENGALURU_BOUNDS = {
+  minLatitude: 12.82,
+  maxLatitude: 13.18,
+  minLongitude: 77.40,
+  maxLongitude: 77.80,
+}
+
+export const BENGALURU_DEFAULT_LOCATION = {
+  latitude: 12.9620,
+  longitude: 77.5665,
+}
+
+export function isWithinBengaluruBounds(latitude, longitude) {
+  const lat = Number(latitude)
+  const lng = Number(longitude)
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false
+
+  return lat >= BENGALURU_BOUNDS.minLatitude &&
+    lat <= BENGALURU_BOUNDS.maxLatitude &&
+    lng >= BENGALURU_BOUNDS.minLongitude &&
+    lng <= BENGALURU_BOUNDS.maxLongitude
+}
+
+export function normalizeCorridor(corridor) {
+  return CORRIDORS.includes(corridor) ? corridor : 'Non-corridor'
+}
+
 export const CAUSE_LABELS = {
   vehicle_breakdown: 'Vehicle Breakdown', accident: 'Accident',
   water_logging: 'Water Logging', tree_fall: 'Tree Fall',

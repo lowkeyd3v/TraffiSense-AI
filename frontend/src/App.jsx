@@ -8,7 +8,7 @@ import Analytics from './Analytics'
 import GridMap from './GridMap'
 import Feedback from './Feedback'
 import LiveFeeds from './components/LiveFeeds'
-import { API } from './constants'
+import { API, BENGALURU_DEFAULT_LOCATION, normalizeCorridor } from './constants'
 
 // Default location: Mysore Road corridor, Bengaluru (median lat/lng of
 // dataset rows tagged "Mysore Road" — falls inside the backend's Bengaluru
@@ -18,7 +18,7 @@ const DEFAULT_FORM = {
   corridor: "Mysore Road", priority:'High',
   time: new Date().toISOString().slice(0,16),
   requires_road_closure:false, event_type:'unplanned',
-  latitude: 12.9620, longitude: 77.5665,
+  ...BENGALURU_DEFAULT_LOCATION,
   police_station: "Central Traffic Control", description:'',
   event_scale: 'Medium',
   crowd_size: 0
@@ -124,7 +124,11 @@ export default function App() {
 }
 
   const handleLiveEventSelect = (formData) => {
-    setForm({ ...DEFAULT_FORM, ...formData })
+    setForm({
+      ...DEFAULT_FORM,
+      ...formData,
+      corridor: normalizeCorridor(formData.corridor),
+    })
     setResults(null)
     setView('dashboard')
     setTab('predict')
