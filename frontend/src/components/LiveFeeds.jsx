@@ -10,7 +10,7 @@ const SIMULATED_FEEDS = [
     formData: {
       event_type: 'planned',
       event_cause: 'procession',
-      corridor: 'MG Road',
+      corridor: 'Non-corridor',
       priority: 'High',
       veh_type: 'others',
       latitude: 12.9788,
@@ -32,7 +32,7 @@ const SIMULATED_FEEDS = [
     formData: {
       event_type: 'planned',
       event_cause: 'procession',
-      corridor: 'Seshadri Road',
+      corridor: 'Non-corridor',
       priority: 'High',
       veh_type: 'others',
       latitude: 12.9772,
@@ -54,7 +54,7 @@ const SIMULATED_FEEDS = [
     formData: {
       event_type: 'unplanned',
       event_cause: 'water_logging',
-      corridor: 'ORR Marathahalli',
+      corridor: 'ORR East 2',
       priority: 'High',
       veh_type: 'unknown',
       latitude: 12.9569,
