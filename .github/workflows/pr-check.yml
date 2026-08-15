@@ -38,6 +38,10 @@ jobs:
         run: |
           python ml_model.py
 
+      - name: Copy model to backend (mirrors render.yaml deploy step)
+        run: |
+          cp ../ml/model.joblib ./model.joblib
+
       - name: Run tests
         run: |
           python -m pytest -v
