@@ -10,7 +10,7 @@ scikit-fuzzy==0.5.0
 joblib==1.5.3
 pydantic==2.13.4
 requests==2.34.2
-python-dotenv==1.1.1
+python-dotenv==1.2.2
 packaging==26.3
 networkx==3.6.1
 matplotlib==3.11.1
