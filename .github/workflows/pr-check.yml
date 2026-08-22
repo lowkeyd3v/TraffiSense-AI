@@ -10,10 +10,6 @@ jobs:
     name: Backend Tests
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: backend
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,23 +24,26 @@ jobs:
 
       - name: Install dependencies
         run: |
-          python -m pip install -r requirements_train.txt
+          python -m pip install -r backend/requirements_train.txt
 
       - name: Verify installation
         run: |
+          python -m pip list
           python -c "import pandas, numpy, sklearn, joblib, pytest; print('Dependencies installed successfully')"
 
       - name: Train ML model
+        working-directory: backend
         run: |
           python ml_model.py
 
       - name: Copy model to backend (mirrors render.yaml deploy step)
+        working-directory: backend
         run: |
           cp ../ml/model.joblib ./model.joblib
 
       - name: Run tests
         run: |
-          python -m pytest ../tests test_model.py test_route.py -v
+          python -m pytest
 
   frontend-test:
     name: Frontend Build Check
