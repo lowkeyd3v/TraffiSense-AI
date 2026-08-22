@@ -23,9 +23,9 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
           {/* Scenario 1 */}
           <div
             onClick={() => onScenarioSelect('water_logging')}
-            className="group cursor-pointer bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all w-full flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
+            className="group cursor-pointer bg-white border border-gray-200 hover:border-blue-300 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-[0_12px_30px_-8px_rgba(40,116,240,0.22)] hover:-translate-y-1 transition-all duration-300 w-full flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-blue-50 text-fk-blue rounded-full flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-blue-50 text-fk-blue rounded-full flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300">
               🌊
             </div>
 
@@ -66,9 +66,9 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
           {/* Scenario 2 */}
           <div
             onClick={() => onScenarioSelect('accident')}
-            className="group cursor-pointer bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all w-full flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
+            className="group cursor-pointer bg-white border border-gray-200 hover:border-blue-300 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-[0_12px_30px_-8px_rgba(40,116,240,0.22)] hover:-translate-y-1 transition-all duration-300 w-full flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-red-50 text-red-500 rounded-full flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300">
               🚑
             </div>
 
@@ -109,9 +109,9 @@ export default function LandingPage({ onScenarioSelect, onLiveFeedSelect }) {
           {/* Scenario 3 */}
           <div
             onClick={() => onScenarioSelect('vip_movement')}
-            className="group cursor-pointer bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-xl transition-all w-full flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
+            className="group cursor-pointer bg-white border border-gray-200 hover:border-blue-300 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-[0_12px_30px_-8px_rgba(40,116,240,0.22)] hover:-translate-y-1 transition-all duration-300 w-full flex flex-col sm:flex-row items-start gap-4 sm:gap-6"
           >
-            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-yellow-50 text-yellow-600 rounded-full flex into-center justify-center text-3xl group-hover:scale-110 transition-transform">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 shrink-0 bg-yellow-50 text-yellow-600 rounded-full flex items-center justify-center text-3xl group-hover:scale-110 transition-transform duration-300">
               🚔
             </div>
 
