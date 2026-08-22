@@ -148,7 +148,7 @@ export default function Feedback() {
 
       {/* Resolve Dialog */}
       {resolvingId && (
-        <div className="fixed inset-0 bg-gray-900 bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-gray-900/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl border border-gray-100 max-w-lg w-full p-6 relative">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Record Post-Event Resolution Feedback</h3>
             <p className="text-xs text-gray-500 mb-4">Input actual observations to automatically retrain the Traffic Intelligence model.</p>
@@ -282,7 +282,7 @@ export default function Feedback() {
       </div>
 
       {showToast && (
-        <div className="fixed bottom-6 right-6 z-50 flex items-center gap-3 p-4 bg-white border border-green-200 rounded-xl shadow-lg animate-bounce">
+        <div className="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 p-4 bg-white border border-green-200 rounded-xl shadow-lg animate-bounce">
           <span className="text-2xl">⚡</span>
           <div>
             <div className="font-bold text-gray-900 text-sm">Feedback Received!</div>

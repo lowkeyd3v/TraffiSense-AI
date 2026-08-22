@@ -232,7 +232,7 @@ export default function ResultsPanel({ results }) {
       </div>
 
       {toast && (
-        <div className="fixed bottom-20 right-4 sm:right-8 z-50 flex items-center gap-3 p-4 bg-white border border-green-200 rounded-xl shadow-lg animate-bounce">
+        <div className="fixed bottom-20 right-4 sm:right-8 z-[9999] flex items-center gap-3 p-4 bg-white border border-green-200 rounded-xl shadow-lg animate-bounce">
           <span className="text-2xl">✅</span>
           <div>
             <div className="font-bold text-gray-900 text-sm">Units Deployed!</div>
@@ -244,7 +244,7 @@ export default function ResultsPanel({ results }) {
       {/* Floating Action Button */}
       <button 
         onClick={() => setAdvisoryModalOpen(true)}
-        className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 z-40 bg-fk-blue hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl hover:scale-105 hover:-translate-y-1 transition-all flex items-center gap-3 pr-6 group"
+        className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 z-[1100] bg-fk-blue hover:bg-blue-700 text-white p-4 rounded-full shadow-2xl hover:scale-105 hover:-translate-y-1 transition-all flex items-center gap-3 pr-6 group cursor-pointer"
       >
         <span className="text-2xl bg-white/20 p-2 rounded-full">📢</span>
         <span className="font-extrabold tracking-wide hidden md:block">Post Public Advisory</span>
@@ -252,7 +252,7 @@ export default function ResultsPanel({ results }) {
 
       {/* Advisory Modal */}
       {advisoryModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm">
           <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-5 sm:p-8 relative overflow-hidden">
             <button 
               onClick={() => setAdvisoryModalOpen(false)}
