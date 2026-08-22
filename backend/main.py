@@ -9,7 +9,7 @@ from pydantic import BaseModel, field_validator
 import joblib
 import pandas as pd
 import numpy as np
-from datetime import datetime
+from datetime import datetime, timezone
 from collections import Counter, defaultdict, deque
 from typing import Optional
 import os
@@ -587,7 +587,7 @@ class DeploymentFeedback(BaseModel):
 
 @app.post("/api/deployments")
 def create_deployment(req: DeploymentRequest):
-    data = req.form.dict()
+    data = req.form.model_dump()
     preds = {
         "predicted_duration": req.predictions.predicted_duration_minutes,
         "personnel": req.predictions.personnel_needed,
@@ -654,12 +654,12 @@ def _run_retraining_job(job_id: int, deployment_id: int):
             job_id,
             status="skipped",
             message="Another retraining job is already in progress; this feedback will be included next run.",
-            finished_at=datetime.utcnow(),
+            finished_at=datetime.now(timezone.utc),
         )
         print(f"Retrain job {job_id}: skipped, training already in progress.")
         return
 
-    update_retrain_job(job_id, status="running", started_at=datetime.utcnow())
+    update_retrain_job(job_id, status="running", started_at=datetime.now(timezone.utc))
     try:
         feedback_rows = get_resolved_feedback()
         outcome = run_validated_retraining(feedback_rows=feedback_rows, model_save_path=MODEL_PATH)
@@ -673,7 +673,7 @@ def _run_retraining_job(job_id: int, deployment_id: int):
             candidate_mae=outcome["candidate_mae"],
             candidate_r2=outcome["candidate_r2"],
             promoted=outcome["promoted"],
-            finished_at=datetime.utcnow(),
+            finished_at=datetime.now(timezone.utc),
         )
 
         if outcome["promoted"]:
@@ -688,7 +688,7 @@ def _run_retraining_job(job_id: int, deployment_id: int):
         else:
             print(f"Retrain job {job_id}: {outcome['status']} — {outcome['message']}")
     except Exception as e:
-        update_retrain_job(job_id, status="failed", message=str(e), finished_at=datetime.utcnow())
+        update_retrain_job(job_id, status="failed", message=str(e), finished_at=datetime.now(timezone.utc))
         print(f"Retrain job {job_id}: failed —", e)
     finally:
         release_training_lock()
@@ -719,7 +719,7 @@ def resolve_existing_deployment(
         # (redundant, expensive) retraining job for the same feedback.
         raise HTTPException(status_code=409, detail="Deployment has already been resolved.")
 
-    res = resolve_deployment(deployment_id, feedback.dict())
+    res = resolve_deployment(deployment_id, feedback.model_dump())
     if not res:
         return {"status": "error", "message": "Deployment not found"}
 

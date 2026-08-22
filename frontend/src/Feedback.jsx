@@ -70,7 +70,6 @@ export default function Feedback() {
   const resolvedDeps = deployments.filter(d => d.status === 'resolved')
 
   const thClass = "px-6 py-3 text-left text-xs font-bold text-gray-500 uppercase tracking-wider"
-  const tdClass = "px-6 py-4 whitespace-nowrap text-sm text-gray-600"
 
   return (
     <div className="p-8 flex flex-col gap-8 bg-gray-50 min-h-full">

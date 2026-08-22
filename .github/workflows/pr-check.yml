@@ -44,7 +44,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python -m pytest -v
+          python -m pytest ../tests test_model.py test_route.py -v
 
   frontend-test:
     name: Frontend Build Check

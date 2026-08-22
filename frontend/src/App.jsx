@@ -207,8 +207,6 @@ export default function App() {
                 setForm={setForm} 
                 loading={loading} 
                 submit={submit} 
-                DEFAULT_FORM={DEFAULT_FORM}
-                setResults={setResults} 
               />
               {error && (
                 <div className="mx-6 mb-6 p-3 rounded-lg bg-red-50 border border-red-200 text-red-600 text-sm flex gap-2">

@@ -73,7 +73,17 @@ export default function LiveFeeds({ onEventSelect, onBack }) {
   return (
     <div className="min-h-screen bg-white flex flex-col font-sans">
       
-      <div className="max-w-6xl mx-auto w-full p-8 mt-8 fade-in-up">
+      <div className="max-w-6xl mx-auto w-full p-8 mt-4 fade-in-up">
+        {onBack && (
+          <div className="mb-6">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-2 text-sm font-bold text-gray-600 hover:text-fk-blue transition-colors px-3 py-1.5 rounded-lg hover:bg-gray-100 cursor-pointer"
+            >
+              ← Back to Control Center
+            </button>
+          </div>
+        )}
         {/* Header Section */}
         <div className="mb-12 flex flex-col items-center text-center">
           <div className="flex items-center gap-3 text-xs font-bold text-gray-400 uppercase tracking-widest mb-8 border border-gray-200 px-4 py-2 rounded-full shadow-sm">

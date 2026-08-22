@@ -70,9 +70,10 @@ def app_client(tmp_path, monkeypatch):
 
     # Stub out the actual model training so tests are fast and deterministic.
     def fake_job(job_id, deployment_id):
+        import datetime as _dt
         main_module.update_retrain_job(
             job_id, status="promoted", message="stubbed for test",
-            promoted=True, finished_at=__import__("datetime").datetime.utcnow(),
+            promoted=True, finished_at=_dt.datetime.now(_dt.timezone.utc),
         )
     monkeypatch.setattr(main_module, "_run_retraining_job", fake_job)
 

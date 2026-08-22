@@ -48,7 +48,7 @@ export default function Analytics({ filters, selectedGridId, onClearCell, select
       <div style={{padding:'20px 24px', display:'flex', flexDirection:'column', gap:10, color:'#374151'}}>
         <div style={{fontWeight:700,color:'#ef4444'}}>Error Loading Analytics</div>
         <div style={{fontSize:'0.82rem',color:'#6b7280'}}>{data.error}</div>
-        <button onClick={() => { onClearCluster && onClearCluster(); onClearCell && onClearCell(); }} 
+        <button onClick={() => { onClearCluster?.(); onClearCell?.(); }} 
           style={{alignSelf:'flex-start',padding:'6px 12px',background:'#3b82f6',color:'#fff',border:'none',borderRadius:6,fontWeight:600,cursor:'pointer',fontSize:'0.75rem'}}>
           Back to Global view
         </button>

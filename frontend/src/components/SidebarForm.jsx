@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { EVENT_CAUSES, VEH_TYPES, CORRIDORS, CAUSE_LABELS, POLICE_STATION_MAX_LENGTH, validatePoliceStation } from '../constants'
 
-export default function SidebarForm({ form, setForm, loading, submit, DEFAULT_FORM, setResults }) {
+export default function SidebarForm({ form, setForm, loading, submit }) {
   const set = (k,v) => setForm(f=>({...f,[k]:v}))
   const handle = e => set(e.target.name, e.target.value)
 

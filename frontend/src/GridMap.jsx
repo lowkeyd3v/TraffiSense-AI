@@ -165,11 +165,11 @@ export default function GridMap({
         `<div style="font-weight:800;font-size:13px;">${cell.count}</div><div style="font-size:10px;opacity:0.75;">incidents</div>`,
         { sticky: true, direction: 'top', opacity: 1, className: 'leaflet-grid-tooltip' }
       )
-      rect.on('click', () => onCellSelect(isSelected ? null : cell.grid_id))
+      rect.on('click', () => onCellSelect?.(isSelected ? null : cell.grid_id))
       rect.addTo(mapInst.current)
       layersRef.current.push(rect)
     })
-  }, [cells, maxCount, selectedGridId, viewMode])
+  }, [cells, maxCount, selectedGridId, viewMode, onCellSelect])
 
   // ── Draw DBSCAN cluster polygons ───────────────────────────────────────────
   useEffect(() => {
@@ -242,7 +242,7 @@ export default function GridMap({
       const onClickCluster = () => {
         const newId = localHighlight === cluster.cluster_id ? null : cluster.cluster_id
         setLocalHighlight(newId)
-        onClusterSelect && onClusterSelect(newId)   // bubble up to App → Analytics
+        onClusterSelect?.(newId)   // bubble up to App → Analytics
       }
       polygon.on('click', onClickCluster)
       marker.on('click', onClickCluster)
@@ -256,7 +256,7 @@ export default function GridMap({
   // ── Switch views: reset selection when toggling ────────────────────────────
   useEffect(() => {
     if (!mapInst.current) return
-    onClusterSelect && onClusterSelect(null)
+    onClusterSelect?.(null)
   }, [viewMode, onClusterSelect])
 
   return (
