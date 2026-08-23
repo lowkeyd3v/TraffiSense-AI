@@ -54,12 +54,12 @@ OSRM_BASE_URL = os.getenv("OSRM_BASE_URL", "http://router.project-osrm.org").rst
 # Optional profile segment (OSRM supports driving / walking / cycling).
 OSRM_PROFILE = os.getenv("OSRM_PROFILE", "driving")
 
-# Per-request timeout, in seconds.
-OSRM_TIMEOUT_SECONDS = _env_float("OSRM_TIMEOUT_SECONDS", 3.0)
+# Per-request timeout, in seconds (kept tight so UI never freezes waiting on public demo server).
+OSRM_TIMEOUT_SECONDS = _env_float("OSRM_TIMEOUT_SECONDS", 1.2)
 
 # Retry policy for transient network/5xx failures.
-OSRM_MAX_RETRIES = _env_int("OSRM_MAX_RETRIES", 2)
-OSRM_RETRY_BACKOFF_SECONDS = _env_float("OSRM_RETRY_BACKOFF_SECONDS", 0.25)
+OSRM_MAX_RETRIES = _env_int("OSRM_MAX_RETRIES", 1)
+OSRM_RETRY_BACKOFF_SECONDS = _env_float("OSRM_RETRY_BACKOFF_SECONDS", 0.1)
 
 # Response cache: avoids re-hitting the routing service for incidents that
 # land on (roughly) the same spot within a short window.

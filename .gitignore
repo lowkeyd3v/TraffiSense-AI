@@ -48,3 +48,11 @@ Thumbs.db
 # IDE
 .vscode/
 .idea/
+
+# Presentations, PDFs, and Synopses
+ppt_images/
+*.pptx
+*.ppt
+*.pdf
+*synopsis*
+*presentation*
