@@ -15,9 +15,7 @@ backend/
 ├── db.py                # Database layer (PostgreSQL / SQLite) & retraining lock mutex
 ├── routing.py           # Configurable OSRM routing client with caching & fallback
 ├── requirements.txt     # Production dependencies
-├── requirements_train.txt # Training & testing dependencies (pytest, httpx)
-├── test_model.py        # Model loading test
-└── test_route.py        # Routing client unit & mock tests
+└── requirements_train.txt # Training & testing dependencies (pytest, httpx)
 ```
 
 ---
@@ -96,7 +94,9 @@ backend/
 | `ALLOWED_ORIGINS` | `http://localhost:5173,https://traffisense-ai.vercel.app` | Comma-separated CORS allowlist. |
 | `OSRM_BASE_URL` | `http://router.project-osrm.org` | OSRM routing server URL. |
 | `OSRM_PROFILE` | `driving` | OSRM routing profile (`driving`, `walking`, `cycling`). |
-| `OSRM_TIMEOUT_SECONDS` | `3.0` | HTTP request timeout for routing. |
+| `OSRM_TIMEOUT_SECONDS` | `1.2` | HTTP request timeout for routing. |
+| `OSRM_MAX_RETRIES` | `1` | Retry attempts on transient errors. |
+| `OSRM_RETRY_BACKOFF_SECONDS` | `0.1` | Backoff interval between retries. |
 | `RESOLVE_API_KEY` | *(empty -> open)* | Secret required in `X-API-Key` header for `/resolve` and `/rollback`. |
 | `RESOLVE_RATE_LIMIT_MAX` | `5` | Max requests per IP window on resolve endpoint. |
 | `RESOLVE_RATE_LIMIT_WINDOW` | `60` | Rate limit window in seconds. |
