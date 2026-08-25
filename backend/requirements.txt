@@ -3,7 +3,7 @@ uvicorn==0.52.4
 sqlalchemy==2.0.52
 psycopg2-binary==2.9.12
 pandas==3.0.5
-numpy==2.2.6
+numpy==2.5.2
 scipy==1.15.2
 scikit-learn==1.9.0
 scikit-fuzzy==0.5.0
