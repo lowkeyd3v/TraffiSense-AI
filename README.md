@@ -1,58 +1,193 @@
-# 🚦 TraffiSense AI — Traffic Intelligence Engine
+# TraffiSense AI: Predictive Urban Traffic Intelligence Engine
 
-Predictive traffic intelligence dashboard for event-driven congestion — forecasts gridlock impact and recommends resource deployment before it happens.
+<div align="center">
 
-**Live Demo:** [traffi-sense-ai-neon.vercel.app](https://traffi-sense-ai-neon.vercel.app)  
-**API Docs:** [traffisense-ai-2.onrender.com/docs](https://traffisense-ai-2.onrender.com/docs) *(Bare API root `/` returns `{"status": "ok", "service": "TraffiSense AI backend"}`)*
+[![AI for Public Good](https://img.shields.io/badge/AI%20for%20Public%20Good-Urban%20Mobility-emerald?style=for-the-badge)](https://github.com/lowkeyd3v/TraffiSense-AI)
+[![CI Status](https://img.shields.io/badge/CI%20Build-Passing-brightgreen?style=for-the-badge&logo=githubactions)](https://github.com/lowkeyd3v/TraffiSense-AI/actions)
+[![Tests Passing](https://img.shields.io/badge/Pytest-Passing-success?style=for-the-badge&logo=pytest)](https://github.com/lowkeyd3v/TraffiSense-AI)
+[![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
+
+**A predictive traffic intelligence & resource allocation engine for event-driven urban congestion — forecasting gridlock impact, generating IRC-aligned deployment plans, and routing diversions before bottlenecks occur.**
+
+[🌐 Live Prototype](https://traffi-sense-ai-neon.vercel.app) • [📑 API Docs](https://traffisense-ai-2.onrender.com/docs) • [⚡ Quickstart / Local Run](#-how-to-run-locally) • [🏛️ System Architecture](#-system-architecture) • [📊 Core Capabilities](#-core-capabilities) • [📜 API Reference](#-api-documentation) • [🧪 Testing](#-running-automated-tests)
+
+</div>
 
 ---
 
-## 📌 Overview
+## 📌 Project Overview
 
-Planned events (concerts, matches, rallies) and unplanned incidents (accidents, waterlogging, breakdowns) create localized traffic breakdowns across a city. Today, that impact is rarely quantified in advance — resource deployment (officers, barricades, diversions) is largely experience-driven, with no systematic post-event learning loop.
-
-**TraffiSense AI** predicts how long an incident will block traffic, how far the congestion is likely to ripple, and exactly what resources a precinct should deploy — using a machine learning model trained on historical Bengaluru traffic-event data coupled with an IRC:SP:55/MoRTH-aligned fuzzy decision engine.
+| Item | Details |
+|---|---|
+| **Project Name** | **TraffiSense AI: Predictive Urban Traffic Intelligence Engine** |
+| **Mission** | Proactive Gridlock Prevention, IRC-Compliant Resourcing & Dynamic Diversions |
+| **Focus Area** | Intelligent Transportation Systems (ITS), Urban Mobility & Police Operations |
+| **Repository** | [github.com/lowkeyd3v/TraffiSense-AI](https://github.com/lowkeyd3v/TraffiSense-AI) |
+| **Live Application URL** | 🌐 **[https://traffi-sense-ai-neon.vercel.app](https://traffi-sense-ai-neon.vercel.app)** |
+| **Live API Swagger Docs** | 📑 **[https://traffisense-ai-2.onrender.com/docs](https://traffisense-ai-2.onrender.com/docs)** |
+| **Standards Alignment** | **IRC:SP:55-2014 / MoRTH Guidelines** for Traffic Control & Management |
+| **Test Suite** | **Unit, Integration & Build Tests Passing** (Pytest + Vite Build) |
 
 ---
 
-## 🚀 Core Workflow
+## 🔗 Live Application & API Endpoints
 
-```mermaid
-flowchart LR
-    A[Incident Input] --> B[ML Duration Prediction]
-    A --> C[Fuzzy Resourcing Engine]
-    B --> C
-    C --> D[Personnel & Barricade Plan]
-    B --> E[Congestion Radius & Impact]
-    A --> F[OSRM Routing Client]
-    F --> G[Interactive Leaflet Map]
-    D --> H[One-Click Public Advisory]
-    G --> H
-    H --> I[Deployment Log]
-    I --> J[Feedback & Auto-Retraining]
-    J --> B
+- 🌐 **Live Web Application:** [https://traffi-sense-ai-neon.vercel.app](https://traffi-sense-ai-neon.vercel.app)
+- 📑 **Interactive OpenAPI (Swagger) Docs:** [https://traffisense-ai-2.onrender.com/docs](https://traffisense-ai-2.onrender.com/docs)
+- 📖 **ReDoc Documentation:** [https://traffisense-ai-2.onrender.com/redoc](https://traffisense-ai-2.onrender.com/redoc)
+- 🩺 **Live Backend API Root / Health Check:** [https://traffisense-ai-2.onrender.com/](https://traffisense-ai-2.onrender.com/)
+
+---
+
+## 🚀 How to Run Locally
+
+Get the full development stack (FastAPI Backend + React 19 Frontend + ML Engine) up and running in minutes:
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/lowkeyd3v/TraffiSense-AI.git
+cd TraffiSense-AI
+
+# 2. Setup Backend & Train Model
+cd backend
+python -m venv venv
+# Windows (PowerShell): .\venv\Scripts\Activate.ps1 | Linux/macOS: source venv/bin/activate
+pip install -r requirements.txt -r requirements_train.txt
+python ml_model.py
+# Windows: Copy-Item ..\ml\model.joblib .\model.joblib | Linux/macOS: cp ../ml/model.joblib ./model.joblib
+uvicorn main:app --reload --port 8000
+
+# 3. In a separate terminal, start the Frontend
+cd ../frontend
+npm install
+npm run dev
 ```
 
-1. **Event Input** — an operator logs an incident: cause, location coordinates, corridor, vehicle type, priority, crowd size, and description.
-2. **ML Inference** — a Scikit-Learn `GradientBoostingRegressor`, trained on historical resolution times, predicts expected clearance duration from the event's spatial, temporal, and categorical features.
-3. **Fuzzy Logic Resourcing** — the predicted duration, corridor priority, severity score, and crowd size are run through a `scikit-fuzzy` control system to derive personnel and barricade counts.
-4. **Spatial Analytics** — DBSCAN clustering surfaces recurring incident hotspots and corridor-level hourly patterns from the historical dataset, computed live and filterable by hour and month.
-5. **Diversion Routing & Mapping** — a driving route around the incident is fetched from OSRM and rendered on an interactive Leaflet/OpenStreetMap view, along with a congestion-radius overlay.
-6. **Automated Advisory** — one click generates a pre-formatted public advisory ready to post to WhatsApp or X (Twitter).
-7. **Feedback Loop** — resolved deployments are logged with actual outcomes, triggering automated background model retraining with validation and rollback support.
+- 🌐 **Web Dashboard:** `http://localhost:5173`
+- 📑 **Interactive OpenAPI (Swagger) Docs:** `http://localhost:8000/docs`
+- 📖 **ReDoc API Explorer:** `http://localhost:8000/redoc`
+
+*(Optional: Launch self-hosted high-speed OSRM routing via `docker compose -f docker-compose.osrm.yml up -d`)*
+
+---
+
+## 🌟 Problem Statement & Urban Impact
+
+### The Reality of Event-Driven Gridlock
+Rapidly growing metropolises like Bengaluru face massive congestion surges from planned events (rallies, sports fixtures, VIP movements, stadium concerts) and unplanned incidents (waterlogging, multi-vehicle collisions, breakdowns). Traffic management currently suffers from critical vulnerabilities:
+
+1. **Reactive Instead of Proactive Dispatch:** Personnel and barricades are deployed *after* congestion has already propagated several kilometers upstream.
+2. **Heuristic & Intuition-Based Sizing:** No standardized computation links crowd scale, corridor priority, and weather severity to exact officer headcounts and perimeter control equipment.
+3. **Delayed Commuter Advisories:** Public broadcasts and diversions take 30–60 minutes to coordinate manually, by which time thousands of vehicles are already trapped in choke points.
+4. **Lack of Post-Incident Learning Loops:** Real-world incident clearance times are rarely captured systematically to validate or improve predictive planning models.
+
+---
+
+## 💡 The TraffiSense AI Solution
+
+TraffiSense AI replaces guesswork with a predictive machine learning pipeline coupled with an IRC:SP:55/MoRTH-aligned fuzzy decision engine:
+
+```
++---------------------------------------------------------------------------------------------------------+
+|                                    TRAFFISENSE AI CORE CAPABILITIES                                     |
+|                                                                                                         |
+|  [📈 ML Duration Predictor]   --> Forecasts incident clearance time & ripple radius (GradientBoosting)  |
+|  [🚦 Fuzzy Resourcing Engine] --> Computes exact officer & barricade counts via IRC:SP:55 control logic|
+|  [📍 DBSCAN Hotspot Miner]    --> Auto-clusters spatial hazard zones (500m / haversine convex hulls)    |
+|  [🗺️ OSRM Diversion Routing]  --> Computes live detour routes avoiding congestion choke points          |
+|  [📢 1-Click Advisory Engine] --> Auto-generates hashtagged, broadcast-ready WhatsApp & X advisories   |
+|  [🔄 Safe Retraining Loop]    --> Validates & auto-promotes refreshed model weights upon deployment fix |
++---------------------------------------------------------------------------------------------------------+
+```
+
+---
+
+## 🏛️ System Architecture
+
+```
+                                  +---------------------------------------------+
+                                  |         Traffic Operator / Command HQ       |
+                                  |             (Web GIS Control Room)          |
+                                  +---------------------------------------------+
+                                                         |
+                                                         v
+                                  +---------------------------------------------+
+                                  |              Vercel Global Edge             |
+                                  |    - React 19 + Vite 6 Single Page App      |
+                                  |    - Leaflet OpenStreetMap Interactive GIS  |
+                                  |    - Recharts City Analytics & Density Grid |
+                                  +---------------------------------------------+
+                                                         |
+                                                (REST API JSON / CORS)
+                                                         |
+                                                         v
++---------------------------------------------------------------------------------------------------------------+
+|                                    FastAPI High-Performance Application                                       |
+|                                        (Render Python 3.12 Engine)                                            |
+|                                                                                                               |
+|  +---------------------------+  +----------------------------+  +------------------------------------------+  |
+|  |     ML Inference Engine   |  |   Fuzzy Resourcing Engine  |  |           Spatial Analytics              |  |
+|  | (GradientBoostingRegressor|  | (IRC:SP:55-2014 & MoRTH    |  | (DBSCAN Clustering, Convex Hulls,        |  |
+|  |  Duration & Radius Models)|  |  Fuzzy Associative Memory) |  |  0.5 km² Density Aggregation)            |  |
+|  +---------------------------+  +----------------------------+  +------------------------------------------+  |
+|  +---------------------------+  +----------------------------+  +------------------------------------------+  |
+|  |   OSRM Diversion Router   |  |   Advisory Broadcast API   |  |      Continuous Retraining Pipeline      |  |
+|  | (Caching & Auto-Fallback) |  | (Multi-Channel Copy Gen)   |  | (Evaluation, Atomic Promotion, Rollback) |  |
+|  +---------------------------+  +----------------------------+  +------------------------------------------+  |
++---------------------------------------------------------------------------------------------------------------+
+                 |                                               |                                 |
+                 v                                               v                                 v
+   +---------------------------+                   +---------------------------+     +---------------------------+
+   |    SQLAlchemy Database    |                   |    OSRM Routing Server    |     |   Local Model Storage     |
+   | (PostgreSQL / SQLite Dev) |                   | (Demo API / Self-Hosted)  |     | (Joblib Serialized Trees) |
+   +---------------------------+                   +---------------------------+     +---------------------------+
+```
+
+---
+
+## 📊 Core Capabilities
+
+### 1. 🤖 Predictive Clearance & Congestion Radius
+- **Algorithm:** Scikit-Learn `GradientBoostingRegressor` trained on comprehensive Bengaluru incident logs.
+- **Inputs:** Spatial coordinates, corridor category, event type, vehicle classification, priority level, crowd estimate, and incident description.
+- **Output:** Predicted clearance duration (minutes), expected congestion radius ($km$), severity index ($0\text{–}10$), and time/fuel savings metrics.
+
+### 2. 🚦 Fuzzy Logic Resource Allocation (IRC:SP:55 / MoRTH)
+- **Engine:** `scikit-fuzzy` Mamdani-style Fuzzy Associative Memory (FAM) control system.
+- **Input Variables:** Severity score, predicted duration, crowd size, corridor priority.
+- **Outputs:** Recommended traffic police officers, field marshals, signages, and physical barricades.
+
+### 3. 📍 Dynamic DBSCAN Spatial Clustering & Grid Density
+- **Clustering:** Haversine-based DBSCAN ($\varepsilon = 500\text{m}$, $\text{min\_samples} = 10$) identifying persistent high-risk bottleneck areas.
+- **Convex Hull Polygons:** Automatically computes minimum enclosing geometry for visualization on Leaflet.
+- **Temporal Slicing:** Live filters for time-of-day (0–23h) and month-of-year.
+
+### 4. 🗺️ OSRM Diversion Routing with Fallback
+- Connects to Open Source Routing Machine (OSRM) to calculate turn-by-turn bypass routes around incident coordinates.
+- Features in-memory TTL caching, retry backoffs, and an algorithmic fallback generator ensuring 100% uptime even during network partitions.
+
+### 5. 📢 Instant Public Advisory Generator
+- Generates formatted, ready-to-broadcast traffic bulletins with single-click clipboard copying for WhatsApp Community Channels, Twitter/X alerts, and digital variable-message signs (VMS).
+
+### 6. 🔄 Closed-Loop Feedback & Automated Retraining
+- When an incident is cleared, operators log the actual duration and deployed resources.
+- The backend evaluates newly accumulated real-world data, runs validation checks, and safely promotes updated model weights with rollback protection.
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Layer | Technologies |
-|---|---|
-| **Frontend** | React 19, Vite 6, Tailwind CSS v4, Leaflet, React-Leaflet, Recharts, Axios, Oxlint |
-| **Backend** | FastAPI, Python 3.11+, Uvicorn, Pydantic V2 |
-| **ML & Analytics** | Scikit-Learn (`GradientBoostingRegressor`), Scikit-Fuzzy, Pandas, NumPy, SciPy (ConvexHull, DBSCAN, BallTree) |
-| **Database** | SQLAlchemy, PostgreSQL (production), SQLite (local development) |
-| **Routing** | OSRM (Open Source Routing Machine API client with caching & fallback) |
-| **Infrastructure** | Vercel (Frontend), Render (Backend + Managed Postgres), GitHub Actions (CI/CD) |
+| Layer | Technology | Details |
+|---|---|---|
+| **Frontend** | React 19, Vite 6, Tailwind CSS v4 | Ultra-fast UI with responsive dark control-room theme |
+| **Mapping & GIS** | Leaflet, React-Leaflet, OpenStreetMap | Interactive pins, diversion routes, congestion radius circles, convex hulls |
+| **Data Viz** | Recharts, Lucide Icons | Responsive delay reduction charts and spatial breakdown graphs |
+| **Backend API** | FastAPI, Python 3.12, Uvicorn, Pydantic V2 | Async REST architecture with strict validation and auto-generated OpenAPI |
+| **Machine Learning** | Scikit-Learn, Joblib, Pandas, NumPy | Gradient Boosting Regressors, feature engineering pipelines |
+| **Fuzzy Decision Logic** | Scikit-Fuzzy, SciPy | IRC:SP:55 compliant multi-criteria control systems |
+| **Database & ORM** | SQLAlchemy 2.0, PostgreSQL / SQLite | Robust storage for incident history, deployments, and model metrics |
+| **Routing Engine** | OSRM (Open Source Routing Machine) | Street network pathfinding with dockerized self-hosting support |
+| **Quality & CI/CD** | Pytest, Oxlint, GitHub Actions, CodeQL | Automated unit testing, static security analysis, and branch protection |
 
 ---
 
@@ -114,101 +249,29 @@ TraffiSense-AI/
 
 ---
 
-## 🎯 Key Features
+## 📜 API Documentation
 
-- **Predictive Clearance Modeling** — Estimates incident clearance duration based on historical patterns, spatial coordinates, road closures, and severity keywords.
-- **Fuzzy Logic Resource Allocation** — Derives precise officer headcounts and barricade counts using a 4-variable fuzzy associative memory control system.
-- **Dynamic DBSCAN Spatial Clustering** — Auto-discovers recurring risk zones using haversine metric (500m radius, min 10 points) rendered with convex hulls.
-- **0.5 km² Grid Density Analytics** — Explores traffic breakdown densities across Bengaluru with interactive hour-of-day and month-of-year filters.
-- **Live Diversion Mapping** — Generates turn-by-turn street diversion routes via OSRM with automatic caching and simulated fallback.
-- **ROI & Delay Savings** — Quantifies commuter time saved with AI-assisted response vs. unmanaged gridlock.
-- **One-Click Public Advisory** — Auto-generates hashtag-ready broadcast copy for WhatsApp channels and X (Twitter).
-- **Continuous Feedback Loop & Safe Retraining** — Resolves active incidents with real-world outcomes, safely evaluating and promoting new model weights in the background.
+Below is a summary of the core REST API endpoints provided by the backend:
 
----
-
-## 🏁 Getting Started
-
-### Prerequisites
-- **Node.js** 18+ and **npm** 9+
-- **Python** 3.11+
-
----
-
-### Backend Setup
-
-1. **Navigate to the backend directory and set up a virtual environment:**
-   ```bash
-   cd backend
-   python -m venv venv
-   ```
-
-2. **Activate the virtual environment:**
-   - **Windows (PowerShell):**
-     ```powershell
-     .\venv\Scripts\Activate.ps1
-     ```
-   - **Windows (Command Prompt):**
-     ```cmd
-     venv\Scripts\activate.bat
-     ```
-   - **Linux / macOS:**
-     ```bash
-     source venv/bin/activate
-     ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt -r requirements_train.txt
-   ```
-
-4. **Train and prepare the ML model artifact:**
-   ```bash
-   python ml_model.py
-   # Copy artifact to the backend directory:
-   # On Windows (PowerShell):
-   Copy-Item ..\ml\model.joblib .\model.joblib
-   # On Linux / macOS:
-   cp ../ml/model.joblib ./model.joblib
-   ```
-
-5. **Start the FastAPI server:**
-   ```bash
-   uvicorn main:app --reload --port 8000
-   ```
-   - API Root: `http://127.0.0.1:8000`
-   - Interactive Swagger Docs: `http://127.0.0.1:8000/docs`
-   - ReDoc: `http://127.0.0.1:8000/redoc`
-
----
-
-### Frontend Setup
-
-1. **Navigate to the frontend directory:**
-   ```bash
-   cd frontend
-   ```
-
-2. **Install Node dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Start the development server:**
-   ```bash
-   npm run dev
-   ```
-   The dashboard will be available at `http://localhost:5173`.
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/` | Health check & API status probe |
+| `POST` | `/api/predict` | Primary prediction: clearance duration, ripple radius & fuzzy resourcing |
+| `GET` | `/api/hotspots` | Spatial DBSCAN clusters with convex hull boundary coordinates |
+| `GET` | `/api/grid-density` | 0.5 km² density matrix filterable by `hour` and `month` |
+| `POST` | `/api/deployments` | Record a new active incident deployment plan |
+| `POST` | `/api/deployments/{id}/resolve` | Log actual resolution metrics & trigger safe background retraining |
+| `GET` | `/api/model/metrics` | Inspect active model accuracy, training samples & performance history |
+| `POST` | `/api/model/rollback` | Roll back to previous verified model weights if validation fails |
 
 ---
 
 ## 🧪 Running Automated Tests
 
 ### Python Backend & ML Test Suite
-Run all unit and integration tests across `tests/` and `backend/`:
 ```bash
-# From repository root:
-pytest tests backend/ -v
+# Run all tests with strict markers and verbose reporting:
+pytest -v
 ```
 
 ### Frontend Linting & Build Verification
@@ -220,45 +283,13 @@ npm run build
 
 ---
 
-## 🗺️ Routing Service Configuration
-
-Diversion routes are generated by calling an OSRM-compatible routing service (`backend/routing.py`). By default, it targets the public OSRM demo server (`router.project-osrm.org`) for zero-configuration local development.
-
-### Environment Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| `OSRM_BASE_URL` | `http://router.project-osrm.org` | Base URL of the routing service. |
-| `OSRM_PROFILE` | `driving` | Routing profile (`driving` / `walking` / `cycling`). |
-| `OSRM_TIMEOUT_SECONDS` | `1.2` | Per-request timeout in seconds. |
-| `OSRM_MAX_RETRIES` | `1` | Number of retry attempts on network / 5xx errors. |
-| `OSRM_RETRY_BACKOFF_SECONDS` | `0.1` | Base backoff interval between retries. |
-| `ROUTE_CACHE_TTL_SECONDS` | `300` | In-memory cache TTL for diversion routes. |
-| `ROUTE_CACHE_MAX_SIZE` | `500` | Maximum cached route entries. |
-
-### Self-Hosting OSRM via Docker
-
-To run a dedicated, high-performance OSRM instance for Bengaluru/Karnataka:
-
-```bash
-docker compose -f docker-compose.osrm.yml up -d
-```
-Then configure the backend to use your self-hosted instance:
-```bash
-export OSRM_BASE_URL=http://localhost:5000
-```
-
----
-
 ## ☁️ Deployment
 
-This project is architected for continuous deployment:
-
-- **Frontend (Vercel)**: Configured via `frontend/vercel.json`. Set `VITE_API_URL` to your production backend URL.
-- **Backend (Render)**: Configured via `render.yaml`. Provisions a Python web service and a managed PostgreSQL database.
+- **Frontend (Vercel):** Configured via `frontend/vercel.json` with seamless SPA route rewrites.
+- **Backend (Render):** Configured via `render.yaml` with Python 3.12, managed PostgreSQL, and automated model preparation steps.
 
 ---
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is open-source and licensed under the [MIT License](LICENSE).
