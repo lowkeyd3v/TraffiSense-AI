@@ -150,7 +150,7 @@ TraffiSense AI replaces guesswork with a predictive machine learning pipeline co
 ### 1. 🤖 Predictive Clearance & Congestion Radius
 - **Algorithm:** Scikit-Learn `GradientBoostingRegressor` trained on comprehensive Bengaluru incident logs.
 - **Inputs:** Spatial coordinates, corridor category, event type, vehicle classification, priority level, crowd estimate, and incident description.
-- **Output:** Predicted clearance duration (minutes), expected congestion radius ($km$), severity index ($0\text{–}10$), and time/fuel savings metrics.
+- **Output:** Predicted clearance duration (minutes), expected congestion radius (km), severity index (0–10), and time/fuel savings metrics.
 
 ### 2. 🚦 Fuzzy Logic Resource Allocation (IRC:SP:55 / MoRTH)
 - **Engine:** `scikit-fuzzy` Mamdani-style Fuzzy Associative Memory (FAM) control system.
@@ -158,7 +158,7 @@ TraffiSense AI replaces guesswork with a predictive machine learning pipeline co
 - **Outputs:** Recommended traffic police officers, field marshals, signages, and physical barricades.
 
 ### 3. 📍 Dynamic DBSCAN Spatial Clustering & Grid Density
-- **Clustering:** Haversine-based DBSCAN ($\varepsilon = 500\text{m}$, $\text{min\_samples} = 10$) identifying persistent high-risk bottleneck areas.
+- **Clustering:** Haversine-based DBSCAN (ε = 500m radius, `min_samples = 10`) identifying persistent high-risk bottleneck areas.
 - **Convex Hull Polygons:** Automatically computes minimum enclosing geometry for visualization on Leaflet.
 - **Temporal Slicing:** Live filters for time-of-day (0–23h) and month-of-year.
 
