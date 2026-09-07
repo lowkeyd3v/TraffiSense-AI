@@ -7,7 +7,7 @@ numpy==2.2.6
 scipy==1.18.1
 scikit-learn==1.9.0
 scikit-fuzzy==0.5.0
-joblib==1.5.3
+joblib==1.6.0
 pydantic==2.13.5
 requests==2.34.2
 python-dotenv==1.2.3
