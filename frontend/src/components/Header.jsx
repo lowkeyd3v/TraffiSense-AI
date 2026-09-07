@@ -97,7 +97,7 @@ export default function Header({ setView }) {
                 </div>
                 <div>
                   <h3 className="font-bold text-gray-900 text-lg mb-1">
-                    Dynamic Mappls Diversion
+                    Dynamic Route Diversion (OSRM)
                   </h3>
                   <p className="text-sm">
                     Generates real-time map routes visually blocking the

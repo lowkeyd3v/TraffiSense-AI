@@ -305,7 +305,7 @@ def predict_resources(request: IncidentRequest):
     elif predicted_duration > 40:
         ripple = "WARNING: Moderate ripple effect likely. Monitor adjacent junctions closely."
 
-    # ── Real street-level diversion route via OSRM/Mappls ────────────────────
+    # ── Real street-level diversion route via OSRM ───────────────────────────
     diversion_route = get_real_diversion_route(request.latitude, request.longitude)
 
     return PredictionResponse(
